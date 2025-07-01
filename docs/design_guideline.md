@@ -11,9 +11,9 @@ Our design is guided by three keywords: **Nostalgic, Cozy, and Minimal.**
 
 ---
 
-## 1. Color Palette
+## 1. Color Palette & Theming (Tailwind v4)
 
-The app supports both a dark (default) and a light theme. The palette is designed to be warm and accessible, meeting WCAG 2.1 AA standards with minimum contrast ratios of 4.5:1 for normal text and 3:1 for large text.
+Our application is built using Tailwind CSS v4, which uses a modern, CSS variable-driven approach for theming. All theme configuration is centralized in `src/app/globals.css`. The app supports both a dark (default) and a light theme, meeting WCAG 2.1 AA accessibility standards.
 
 ### **Night Mode (Default Dark Theme)**
 
@@ -39,44 +39,46 @@ The airy and clean counterpart that maintains the brand's warmth.
 
 For consistent feedback and state communication:
 
-- **Success:** `#10B981` (Emerald-500) - For confirmations, completed actions
-- **Warning:** `#F59E0B` (Amber-500) - For cautions, pending states
-- **Error:** `#EF4444` (Red-500) - For errors, destructive actions
-- **Info:** `#3B82F6` (Blue-500) - For informational messages
+- **Success:** `#10B981` (Emerald-500)
+- **Warning:** `#F59E0B` (Amber-500)
+- **Error:** `#EF4444` (Red-500)
+- **Info:** `#3B82F6` (Blue-500)
 
-### **Color Usage Guidelines**
+### **Implementation: CSS Variables & `@theme`**
+
+Our theme is defined in `src/app/globals.css` using `oklch` color values for modern browsers. We define our brand tokens in `:root` and then map them to Tailwind's utilities using `@theme`.
 
 ```css
-/* Primary Actions */
-.btn-primary {
-  background: #d4a269;
-  color: #1a1d23;
+/* src/app/globals.css (abbreviated) */
+
+/* 1. Define custom utilities */
+@theme {
+  --font-heading: var(--font-poppins), sans-serif;
+  --font-body: var(--font-source-sans-pro), sans-serif;
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-error: #EF4444;
+  --color-info: #3B82F6;
+  --color-flicklog-accent-teal: oklch(0.485 0.05 214.3);
 }
 
-/* Secondary Actions */
-.btn-secondary {
-  background: transparent;
-  color: #d4a269;
-  border: 1px solid #d4a269;
+/* 2. Define CSS variables for the theme */
+:root {
+  /* This is our "Night Mode" theme */
+  --background: oklch(0.151 0.012 259.4); /* #1A1D23 */
+  --foreground: oklch(0.914 0.011 82.9);  /* #EAE6E1 */
+  --card: oklch(0.203 0.014 259.6);       /* #252931 */
+  --primary: oklch(0.704 0.094 78.4);     /* #D4A269 */
+  /* ... etc ... */
 }
 
-/* Text Hierarchy */
-.text-primary {
-  color: #eae6e1;
-} /* Dark mode */
-.text-secondary {
-  color: #b8b5b2;
-} /* 60% opacity of primary */
-.text-muted {
-  color: #8a8884;
-} /* 40% opacity of primary */
-
-/* Interactive States */
-.interactive:hover {
-  background: rgba(212, 162, 105, 0.1);
-}
-.interactive:focus {
-  box-shadow: 0 0 0 2px #d4a269;
+/* 3. Map our variables to Tailwind's theme system */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-primary: var(--primary);
+  /* ... etc ... */
 }
 ```
 
@@ -93,38 +95,24 @@ Our typography is clean and contemporary, with a touch of personality in headlin
 - **Role:** Used for all major headings (`<h1>`, `<h2>`, `<h3>`), movie titles, and prominent UI elements
 - **Feel:** Geometric, warm, and inviting
 - **Weights:** 600 (Semi-bold), 700 (Bold)
+- **Utility Class:** `font-heading`
 
 #### **Body Font: Source Sans Pro**
 
 - **Role:** Used for all paragraphs, comments, descriptions, labels, and general UI text
 - **Feel:** Clean, professional, and highly legible
 - **Weights:** 400 (Regular), 500 (Medium), 600 (Semi-bold)
+- **Utility Class:** `font-body`
 
-### **Typography Scale**
+### **Typography Scale (Desktop Sizes)**
 
-#### **Desktop Sizes**
-
-- **H1 (Page Titles):** 32px (2rem) - Poppins 700
-- **H2 (Section Headers):** 24px (1.5rem) - Poppins 600
-- **H3 (Card Titles):** 20px (1.25rem) - Poppins 600
-- **H4 (Subsections):** 18px (1.125rem) - Source Sans Pro 600
-- **Body Large:** 16px (1rem) - Source Sans Pro 400
-- **Body Regular:** 14px (0.875rem) - Source Sans Pro 400
-- **Body Small:** 12px (0.75rem) - Source Sans Pro 400
-- **Caption:** 11px (0.6875rem) - Source Sans Pro 500
-
-#### **Mobile Sizes (Responsive)**
-
-- **H1:** 28px (1.75rem)
-- **H2:** 20px (1.25rem)
-- **H3:** 18px (1.125rem)
-- **Body:** 16px (1rem) - Larger for better mobile readability
-
-### **Line Height Guidelines**
-
-- **Headlines:** 1.2 (tight)
-- **Body Text:** 1.6 (relaxed for readability)
-- **Captions:** 1.4 (balanced)
+- **H1 (Page Titles):** `text-3xl` (30px) or `text-4xl` (36px) - `font-heading font-bold`
+- **H2 (Section Headers):** `text-2xl` (24px) - `font-heading font-semibold`
+- **H3 (Card Titles):** `text-xl` (20px) - `font-heading font-semibold`
+- **H4 (Subsections):** `text-lg` (18px) - `font-body font-semibold`
+- **Body Large:** `text-base` (16px) - `font-body font-normal`
+- **Body Regular:** `text-sm` (14px) - `font-body font-normal`
+- **Body Small:** `text-xs` (12px) - `font-body font-normal`
 
 ---
 
@@ -134,36 +122,23 @@ The structure of our UI is defined by generous spacing and soft, consistent shap
 
 ### **Spacing System**
 
-Using Tailwind's 4px base unit system:
+Using Tailwind's default 4px base unit system:
 
-- **Micro spacing:** `space-1` (4px) - Between related elements
-- **Small spacing:** `space-2` (8px) - Form field gaps
-- **Medium spacing:** `space-4` (16px) - Component internal padding
-- **Large spacing:** `space-6` (24px) - Between component groups
-- **XL spacing:** `space-8` (32px) - Section breaks
-- **XXL spacing:** `space-12` (48px) - Major layout sections
+- **Micro spacing:** `p-1`, `gap-1` (4px)
+- **Small spacing:** `p-2`, `gap-2` (8px)
+- **Medium spacing:** `p-4`, `gap-4` (16px)
+- **Large spacing:** `p-6`, `gap-6` (24px)
+- **XL spacing:** `p-8`, `gap-8` (32px)
+- **XXL spacing:** `p-12`, `gap-12` (48px)
 
 ### **Border Radius Standards**
 
-- **Cards, Buttons, Inputs:** `rounded-lg` (8px)
-- **Tags, Badges:** `rounded-full` (full radius)
-- **Modals, Overlays:** `rounded-xl` (12px)
-- **Images:** `rounded-md` (6px)
+Defined by the `--radius` variable in `globals.css` (default `0.5rem` / 8px).
 
-### **Shadow System**
-
-Subtle shadows for depth without heaviness:
-
-- **Card Shadow:** `shadow-md` - For content cards
-- **Modal Shadow:** `shadow-2xl` - For overlays and modals
-- **Button Shadow:** `shadow-sm` - For interactive elements
-- **Hover Shadow:** `shadow-lg` - For hover states
-
-### **Grid System**
-
-- **Desktop:** 12-column grid with 24px gutters
-- **Tablet:** 8-column grid with 20px gutters
-- **Mobile:** 4-column grid with 16px gutters
+- **Cards, Buttons, Inputs:** `rounded-lg`
+- **Tags, Badges:** `rounded-full`
+- **Modals, Overlays:** `rounded-xl`
+- **Images:** `rounded-md`
 
 ---
 
@@ -175,49 +150,14 @@ Subtle shadows for depth without heaviness:
 - **Easing:** `ease-out` for entrances, `ease-in` for exits
 - **Reduce Motion:** Respect `prefers-reduced-motion` setting
 
-### **Interactive States**
+### **Focus States**
 
-#### **Buttons**
-
-```css
-/* Primary Button States */
-.btn-primary {
-  transition: all 200ms ease-out;
-}
-.btn-primary:hover {
-  background: #c19550; /* Slightly darker gold */
-  transform: translateY(-1px);
-  shadow: shadow-md;
-}
-.btn-primary:active {
-  transform: translateY(0);
-}
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-```
-
-#### **Cards**
+All interactive elements MUST have visible focus indicators, handled automatically by ShadCN/ui components via the `--ring` variable.
 
 ```css
-.card {
-  transition: transform 200ms ease-out, shadow 200ms ease-out;
-}
-.card:hover {
-  transform: translateY(-2px);
-  shadow: shadow-lg;
-}
-```
-
-#### **Focus States**
-
-All interactive elements MUST have visible focus indicators:
-
-```css
-.interactive:focus {
-  outline: 2px solid #d4a269;
-  outline-offset: 2px;
+/* Example of how ShadCN uses our ring variable */
+.ring {
+  --tw-ring-color: var(--ring);
 }
 ```
 
@@ -225,12 +165,14 @@ All interactive elements MUST have visible focus indicators:
 
 ## 5. Component Styling Reference
 
+Component styling is achieved by composing Tailwind utility classes. The ShadCN/ui library provides the base components which are themed by our `globals.css` file.
+
 ### **Cards**
 
-The primary container for content.
+The primary container for content. Uses `--card` and `--card-foreground` variables.
 
 ```tsx
-<div className="bg-[#252931] rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-200">
+<div className="bg-card text-card-foreground rounded-lg border p-6">
   {/* Card content */}
 </div>
 ```
@@ -239,30 +181,40 @@ The primary container for content.
 
 #### **Primary Buttons**
 
+Uses `--primary` and `--primary-foreground` variables.
+
 ```tsx
-<button className="bg-[#D4A269] text-[#1A1D23] px-4 py-2 rounded-lg font-medium hover:bg-[#C19550] focus:ring-2 focus:ring-[#D4A269] focus:ring-offset-2 transition-all duration-200">
-  Primary Action
-</button>
+<Button>Primary Action</Button>
 ```
+
+*Resulting classes include `bg-primary text-primary-foreground`.*
 
 #### **Secondary Buttons**
 
+Uses `--secondary` and `--secondary-foreground` variables.
+
 ```tsx
-<button className="bg-transparent text-[#D4A269] border border-[#D4A269] px-4 py-2 rounded-lg font-medium hover:bg-[#D4A269] hover:text-[#1A1D23] focus:ring-2 focus:ring-[#D4A269] transition-all duration-200">
-  Secondary Action
-</button>
+<Button variant="secondary">Secondary Action</Button>
 ```
+
+*Resulting classes include `bg-secondary text-secondary-foreground`.*
 
 ### **Input Fields**
 
+Uses the `--input` variable for borders.
+
 ```tsx
-<input className="bg-[#252931] border border-[#3A3F47] rounded-lg px-3 py-2 text-[#EAE6E1] focus:ring-2 focus:ring-[#D4A269] focus:border-[#D4A269] transition-colors duration-200" />
+<Input type="email" placeholder="Email" />
 ```
+
+*Resulting classes include `border-input`.*
 
 ### **Tags & Badges**
 
+Uses a custom utility class defined in our theme.
+
 ```tsx
-<span className="bg-[#3E6D74] text-[#EAE6E1] px-3 py-1 rounded-full text-sm font-medium">
+<span className="bg-flicklog-accent-teal text-white px-3 py-1 rounded-full text-sm font-medium">
   Tag Label
 </span>
 ```
@@ -279,14 +231,6 @@ The primary container for content.
   - Small: `h-4 w-4` (16px) - For inline text
   - Medium: `h-5 w-5` (20px) - For buttons
   - Large: `h-6 w-6` (24px) - For navigation
-
-### **Icon Usage Guidelines**
-
-```tsx
-// Consistent sizing and styling
-<Star className="h-5 w-5 text-[#D4A269]" />
-<Heart className="h-4 w-4 text-red-500" fill="currentColor" />
-```
 
 ---
 
