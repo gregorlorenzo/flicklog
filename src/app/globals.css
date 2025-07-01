@@ -1,26 +1,117 @@
 @import 'tailwindcss';
+@import "tw-animate-css";
+
+/*
+* =================================================================
+* FLICKLOG THEME DEFINITION (Tailwind v4)
+* Source of Truth: design_guideline.md
+* =================================================================
+*/
+
+@theme {
+
+  fontFamily: {
+    heading: "var(--font-poppins)",
+      body: "var(--font-source-sans-pro)",
+  }
+
+  ,
+  colors: {
+    success: "#10B981",
+    warning: "#F59E0B",
+    error: "#EF4444",
+    info: "#3B82F6",
+    flicklog: {
+      "accent-teal": "oklch(0.485 0.05 214.3)",
+    }
+
+    ,
+  }
+
+  ,
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Base Layout */
+  --background: oklch(0.151 0.012 259.4);
+  /* #1A1D23 */
+  --foreground: oklch(0.914 0.011 82.9);
+  /* #EAE6E1 */
+
+  /* Cards, Inputs, Popovers */
+  --card: oklch(0.203 0.014 259.6);
+  /* #252931 */
+  --card-foreground: oklch(0.914 0.011 82.9);
+  --popover: oklch(0.203 0.014 259.6);
+  --popover-foreground: oklch(0.914 0.011 82.9);
+
+  /* Primary Accent (Gold) for Buttons, Links */
+  --primary: oklch(0.704 0.094 78.4);
+  /* #D4A269 */
+  --primary-foreground: oklch(0.151 0.012 259.4);
+  /* Dark text on gold buttons */
+
+  /* Secondary Buttons */
+  --secondary: oklch(0.203 0.014 259.6);
+  /* Card background */
+  --secondary-foreground: oklch(0.704 0.094 78.4);
+  /* Gold text */
+
+  /* Muted Text */
+  --muted: oklch(0.203 0.014 259.6);
+  --muted-foreground: oklch(0.914 0.011 82.9 / 0.6);
+  /* Light text at 60% opacity */
+
+  /* Hover states, etc. */
+  --accent: oklch(0.203 0.014 259.6);
+  --accent-foreground: oklch(0.914 0.011 82.9);
+
+  /* Destructive Actions */
+  --destructive: oklch(0.577 0.245 27.325);
+  /* Default red is fine */
+  --destructive-foreground: oklch(0.914 0.011 82.9);
+
+  /* Borders and Rings */
+  --border: oklch(0.704 0.094 78.4 / 0.2);
+  /* Faint gold border */
+  --input: oklch(0.704 0.094 78.4 / 0.2);
+  --ring: oklch(0.704 0.094 78.4 / 0.8);
+  /* Stronger gold for focus rings */
+
+  /* Misc */
+  --radius: 0.5rem;
+  /* 8px */
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --background: oklch(0.151 0.012 259.4);
+  --foreground: oklch(0.914 0.011 82.9);
+  --card: oklch(0.203 0.014 259.6);
+  --card-foreground: oklch(0.914 0.011 82.9);
+  --popover: oklch(0.203 0.014 259.6);
+  --popover-foreground: oklch(0.914 0.011 82.9);
+  --primary: oklch(0.704 0.094 78.4);
+  --primary-foreground: oklch(0.151 0.012 259.4);
+  --secondary: oklch(0.203 0.014 259.6);
+  --secondary-foreground: oklch(0.704 0.094 78.4);
+  --muted: oklch(0.203 0.014 259.6);
+  --muted-foreground: oklch(0.914 0.011 82.9 / 0.6);
+  --accent: oklch(0.203 0.014 259.6);
+  --accent-foreground: oklch(0.914 0.011 82.9);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.914 0.011 82.9);
+  --border: oklch(0.704 0.094 78.4 / 0.2);
+  --input: oklch(0.704 0.094 78.4 / 0.2);
+  --ring: oklch(0.704 0.094 78.4 / 0.8);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border;
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "kern" on, "liga" on;
+  }
 }
