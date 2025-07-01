@@ -29,11 +29,11 @@ This is the foundation of the application.
 
 How the application looks and feels.
 
-| Technology       | Version / Spec | Role & Purpose              | Reason for Choice                                                                                                       | Alternatives Considered                 |
-| :--------------- | :------------- | :-------------------------- | :---------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- |
-| **ShadCN/ui**    | `CLI-based`    | Component Library           | Provides unstyled, accessible, and highly composable components. We copy components into our codebase for full control. | Mantine, Chakra UI, Headless UI         |
-| **Tailwind CSS** | `^3.4.3`       | Utility-First CSS Framework | Works perfectly with ShadCN/ui and our component-based architecture, allowing for rapid and consistent styling.         | CSS Modules, Styled Components, Emotion |
-| **Lucide React** | `^0.395.0`     | Icon Library                | Simple and beautiful open-source icons, a common choice for ShadCN/ui projects.                                         | React Icons, Heroicons, Phosphor Icons  |
+| Technology       | Version / Spec  | Role & Purpose              | Reason for Choice                                                                                                                              | Alternatives Considered                 |
+| :--------------- | :-------------- | :-------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------- |
+| **ShadCN/ui**    | `CLI-based`     | Component Library           | Provides unstyled, accessible, and highly composable components. We copy components into our codebase for full control. The `shadcn@latest` CLI is used. | Mantine, Chakra UI, Headless UI         |
+| **Tailwind CSS** | `^4.0.0-alpha`  | Utility-First CSS Framework | A config-less, high-performance engine that works perfectly with our component-based architecture. All theming is done via CSS variables in `globals.css`. | CSS Modules, Styled Components, Emotion |
+| **Lucide React** | `^0.395.0`      | Icon Library                | Simple and beautiful open-source icons, a common choice for ShadCN/ui projects.                                                                | React Icons, Heroicons, Phosphor Icons  |
 
 ## Backend & Data
 
@@ -68,12 +68,13 @@ Handling user input reliably and safely.
 
 Tools that ensure our code is consistent, clean, and bug-free.
 
-| Technology                    | Version  | Role & Purpose              | Reason for Choice                                                                                   | Alternatives Considered   |
-| :---------------------------- | :------- | :-------------------------- | :-------------------------------------------------------------------------------------------------- | :------------------------ |
-| **Prettier**                  | `^3.3.2` | Opinionated Code Formatter  | Enforces a consistent code style across the entire project, eliminating debates over formatting.    | Rome (deprecated), dprint |
-| **ESLint**                    | `^9.5.0` | Code Linter                 | Statically analyzes code to find and fix problems, such as potential bugs and anti-patterns.        | TSLint (deprecated), Rome |
-| `eslint-config-prettier`      | `^9.1.0` | Prettier/ESLint Integration | Disables ESLint rules that conflict with Prettier, allowing them to work together without fighting. | Built-in configs          |
-| `prettier-plugin-tailwindcss` | `^0.6.5` | Prettier Plugin             | Automatically sorts Tailwind CSS classes in a consistent order, improving readability.              | Manual sorting            |
+| Technology                    | Version   | Role & Purpose              | Reason for Choice                                                                                                         | Alternatives Considered   |
+| :---------------------------- | :-------- | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------ | :------------------------ |
+| **Prettier**                  | `^3.3.2`  | Opinionated Code Formatter  | Enforces a consistent code style across the entire project, eliminating debates over formatting.                          | Rome (deprecated), dprint |
+| **ESLint**                    | `^9.5.0`  | Code Linter                 | Statically analyzes code to find and fix problems. Uses the modern "flat config" (`eslint.config.mjs`) standard.        | TSLint (deprecated), Rome |
+| `eslint-config-prettier`      | `^9.1.0`  | Prettier/ESLint Integration | Disables ESLint rules that conflict with Prettier, allowing them to work together without fighting.                       | Built-in configs          |
+| `prettier-plugin-tailwindcss` | `^0.6.5`  | Prettier Plugin             | Automatically sorts Tailwind CSS classes in a consistent order, improving readability.                                    | Manual sorting            |
+| `dotenv-cli`                  | `^7.4.2`  | Env File Loader for Scripts | Allows safely running scripts (like local DB migrations) against different `.env` files. Used for `pnpm db:migrate:dev`. | Manual env management     |
 
 ## Testing & Quality Assurance
 
@@ -106,7 +107,7 @@ Tools for monitoring application health and performance.
 
 ### Development Environment
 
-- Local PostgreSQL via Docker Compose (optional)
+- Local PostgreSQL via Docker Compose
 - Hot reload enabled
 - Detailed error messages
 - All logging levels enabled
@@ -128,30 +129,32 @@ Tools for monitoring application health and performance.
 # Clone and install dependencies
 git clone <repository-url>
 cd flicklog
-npm install
+pnpm install
 
 # Environment setup
+# Create a .env.local file from the example for local development
 cp .env.example .env.local
-# Configure environment variables
+# Create a .env file for production secrets (used by Prisma migrate)
+cp .env.example .env
+# Configure environment variables in both files
 
-# Database setup
-npx prisma generate
-npx prisma db push
+# Database setup against local Docker container
+pnpm db:migrate:dev --name initial-schema
 
 # ShadCN/ui initialization (if not already done)
-npx shadcn-ui@latest init
+npx shadcn@latest init
 ```
 
 ### Main Dependencies
 
 ```bash
-npm install next@^15.0.0 react@^19.0.0 react-dom@^19.0.0 zod@^3.23.8 @prisma/client@^5.14.0 @supabase/ssr@^0.3.0 @supabase/supabase-js@^2.43.4 @hookform/resolvers@^3.6.0 react-hook-form@^7.51.5 tailwind-merge lucide-react clsx
+pnpm add next@^15.0.0 react@^19.0.0 react-dom@^19.0.0 zod@^3.23.8 @prisma/client@^5.14.0 @supabase/ssr @supabase/supabase-js @hookform/resolvers react-hook-form tailwind-merge lucide-react clsx
 ```
 
 ### Development Dependencies
 
 ```bash
-npm install -D typescript@^5.4.5 tailwindcss@^3.4.3 postcss@^8.4.37 autoprefixer@^10.4.19 prisma@^5.14.0 @types/node@^20.14.2 @types/react@^18.3.3 @types/react-dom@^18.3.0 prettier@^3.3.2 eslint@^9.5.0 eslint-config-prettier@^9.1.0 prettier-plugin-tailwindcss@^0.6.5 vitest@^1.6.0 @testing-library/react@^14.0.0 @playwright/test@^1.44.0 msw@^2.3.0
+pnpm add -D typescript@^5.4.5 tailwindcss@^4.0.0-alpha @tailwindcss/postcss postcss prisma@^5.14.0 prettier@^3.3.2 eslint@^9.5.0 eslint-config-prettier@^9.1.0 prettier-plugin-tailwindcss@^0.6.5 dotenv-cli@^7.4.2 vitest@^1.6.0 @testing-library/react@^14.0.0 @playwright/test@^1.44.0 msw@^2.3.0
 ```
 
 ---
