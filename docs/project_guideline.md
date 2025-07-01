@@ -10,16 +10,16 @@ This document outlines the coding standards, best practices, and architectural p
 
 ## 1. File & Folder Structure
 
-We use the Next.js App Router. The structure should be logical and scalable.
+We use the Next.js App Router within a `src/` directory. The structure should be logical and scalable.
 
-- **`app/`**: Contains all routes.
-- **`components/`**: The home for all React components.
-  - **`components/ui/`**: For base UI components from **ShadCN/ui**.
-  - **`components/shared/`**: For custom, reusable components used across multiple features.
-  - **`components/features/`**: For complex components tied to a specific feature.
-- **`lib/`**: For shared utilities, helpers, and API clients (e.g., `supabase-client.ts`).
-- **`hooks/`**: For custom React hooks.
-- **`actions/`**: For all Next.js Server Actions.
+- **`src/app/`**: Contains all routes.
+- **`src/components/`**: The home for all React components.
+  - **`src/components/ui/`**: For base UI components from **ShadCN/ui**.
+  - **`src/components/shared/`**: For custom, reusable components used across multiple features.
+  - **`src/components/features/`**: For complex components tied to a specific feature.
+- **`src/lib/`**: For shared utilities, helpers, and API clients (e.g., `supabase-client.ts`).
+- **`src/hooks/`**: For custom React hooks.
+- **`src/actions/`**: For all Next.js Server Actions.
 - **`prisma/`**: For the Prisma schema and migrations.
 - **`tests/`**: For all test files, mirroring the app structure.
 - **File Naming:**
@@ -138,6 +138,7 @@ describe("createLogEntry action", () => {
 - **Zod for Validation:** Define a Zod schema for every Server Action's input and **always re-validate on the server**.
 - **Data Fetching:** Fetch data directly within Server Components using `async/await`.
 - **Prisma Client:** Use the singleton instance from `lib/db.ts`.
+- **Local DB Migrations:** To run migrations against the local Docker database, use the `pnpm db:migrate:dev --name <migration-name>` command.
 
 ### Server Action Documentation
 
@@ -188,8 +189,8 @@ export async function createLogEntry(
 ## 7. Styling (Tailwind CSS)
 
 - **Utility-First:** Embrace the utility-first nature of Tailwind.
+- **Theming via CSS Variables:** All theme configuration (colors, fonts) is done in `src/app/globals.css` using CSS custom properties (`:root`) and the `@theme` directive, per Tailwind v4 standards.
 - **`cn` utility:** Always use the `cn` function for combining class names to prevent style conflicts.
-- **Colocation:** All styles should be colocated with their respective components.
 - **Auto-sorting:** Rely on `prettier-plugin-tailwindcss` to sort class names.
 
 ---
@@ -208,9 +209,9 @@ export async function createLogEntry(
 
 Our deployment process is streamlined through Vercel's Git integration.
 
-1.  **Pre-commit Hooks:** Lint, format, and type-check locally.
-2.  **Pull Request Checks:** When a PR is opened, Vercel automatically runs tests and a build check. A preview deployment is generated for review.
-3.  **Production Deploy:** Merging a PR to the `main` branch automatically deploys the latest version to production.
+1. **Pre-commit Hooks:** Lint, format, and type-check locally.
+2. **Pull Request Checks:** When a PR is opened, Vercel automatically runs tests and a build check. The build command is `prisma generate && next build`. A preview deployment is generated for review.
+3. **Production Deploy:** Merging a PR to the `main` branch automatically deploys the latest version to production.
 
 ---
 
@@ -220,10 +221,10 @@ Our deployment process is streamlined through Vercel's Git integration.
 
 Every mutating Server Action MUST:
 
-1.  **Authenticate:** Check for a valid user session using Supabase helpers.
-2.  **Authorize:** Verify user permissions for the requested resource (e.g., is the user a member of the Space?).
-3.  **Validate:** Re-validate all input with Zod schemas on the server.
-4.  **Sanitize:** Sanitize user-generated content that will be rendered as HTML to prevent XSS (if applicable).
+1. **Authenticate:** Check for a valid user session using Supabase helpers.
+2. **Authorize:** Verify user permissions for the requested resource (e.g., is the user a member of the Space?).
+3. **Validate:** Re-validate all input with Zod schemas on the server.
+4. **Sanitize:** Sanitize user-generated content that will be rendered as HTML to prevent XSS (if applicable).
 
 ### Data Protection
 
