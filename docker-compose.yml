@@ -1,10 +1,11 @@
 services:
-  postgres:
+  db:
     image: postgres:16
+    container_name: flicklog-db
     restart: always
     environment:
-      POSTGRES_USER: flicklog-user
-      POSTGRES_PASSWORD: flicklog-password
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: flicklog
     ports:
       - '5432:5432'
