@@ -1,0 +1,94 @@
+## Phase 2: Collaboration with Shared Spaces
+
+**Overall Goal:** Implement the complete functionality for creating, managing, and participating in Shared Spaces. This includes inviting members, logging entries collaboratively, and handling the "Pending Ratings" workflow, which is the core social driver of the app.
+
+**Status:** ⏳ **Not Started**
+
+---
+
+### Milestone 2.1: Shared Space Creation & Management
+
+**Goal:** Allow users to create new `SHARED` spaces and manage their members. This involves building the forms and server actions for space and membership management.
+**Key Document References:** `database_schema.md`, `flicklog.md` (Core Solution)
+
+| Task ID | Task Description                                                                        | Backend/Frontend | TDD Focus (Key Tests) / Verification                                                                                                                                           | Status   | Notes/Blockers                                           |
+| :------ | :-------------------------------------------------------------------------------------- | :--------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- | :------------------------------------------------------- |
+| P2.1.1  | Create a "Create New Space" form.                                                       | Frontend         | The form renders with a single input for the space `name`.                                                                                                                     | ⬜ To Do | This could be a modal or a dedicated page `/spaces/new`. |
+| P2.1.2  | Implement the `createSpace` Server Action.                                              | Backend          | **Test:** Action validates that a user is logged in and the `name` is not empty.                                                                                               | ⬜ To Do |                                                          |
+| P2.1.3  | Logic for `createSpace` action.                                                         | Backend          | **Verification:** Creates a new `Space` record with `type: 'SHARED'` and the creator as `owner_id`. It must also create a `SpaceMember` record, making the creator an `ADMIN`. | ⬜ To Do | This happens in a Prisma transaction.                    |
+| P2.1.4  | Create a "Space Settings" page (e.g., `/spaces/[spaceId]/settings`).                    | Frontend         | The page is reachable and displays the space name and a list of current members.                                                                                               | ⬜ To Do |                                                          |
+| P2.1.5  | Create a Server Action `inviteMember` that accepts a `spaceId` and a user's `username`. | Backend          | **Test:** The action fails if the inviter is not an `ADMIN` of the space. It fails if the invited user doesn't exist.                                                          | ⬜ To Do |                                                          |
+| P2.1.6  | Logic for `inviteMember` action.                                                        | Backend          | **Verification:** Successfully inviting a user creates a new `SpaceMember` record with the role `MEMBER`.                                                                      | ⬜ To Do | Handle cases where a user is already a member.           |
+| P2.1.7  | Create a Server Action `removeMember`.                                                  | Backend          | **Test:** An `ADMIN` can remove a `MEMBER`. An admin cannot remove another admin (except the owner, who can't be removed).                                                     | ⬜ To Do |                                                          |
+
+---
+
+### Milestone 2.2: Row Level Security (RLS) Implementation
+
+**Goal:** Implement critical database-level security policies to ensure users can only see and modify data within spaces they belong to.
+**Key Document References:** `database_schema.md`, `project_guideline.md` (Security Checklist)
+
+| Task ID | Task Description                                                  | Backend/Frontend | Verification (How to Confirm)                                                                                                                                                         | Status   | Notes/Blockers                                                       |
+| :------ | :---------------------------------------------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------- | :------------------------------------------------------------------- |
+| P2.2.1  | Write and enable an RLS policy for the `Space` table.             | Backend          | **Verification:** A user can only `SELECT` spaces where their `user_id` is present in the `SpaceMember` table for that `space_id`.                                                    | ⬜ To Do | This is done via SQL in the Supabase dashboard.                      |
+| P2.2.2  | Write and enable an RLS policy for the `SpaceMember` table.       | Backend          | **Verification:** A user can `SELECT` all members of a space they are also a member of. An `ADMIN` can `INSERT` and `DELETE`.                                                         | ⬜ To Do |                                                                      |
+| P2.2.3  | Write and enable an RLS policy for the `LogEntry` table.          | Backend          | **Verification:** A user can `SELECT` log entries belonging to a space they are a member of. Any member can `INSERT`.                                                                 | ⬜ To Do |                                                                      |
+| P2.2.4  | Write and enable an RLS policy for `Rating` and `Comment` tables. | Backend          | **Verification:** A user can `SELECT` all ratings/comments in their spaces. A user can only `INSERT` or `UPDATE` their OWN ratings/comments.                                          | ⬜ To Do | `user_id = auth.uid()` is the key condition here for CUD operations. |
+| P2.2.5  | Write and enable an RLS policy for the `PendingRating` table.     | Backend          | **Verification:** A user can only `SELECT` pending ratings assigned to them (`user_id = auth.uid()`). A user can only `DELETE` their own pending ratings (implicitly via a function). | ⬜ To Do |                                                                      |
+
+---
+
+### Milestone 2.3: Shared Logging & The "Pending Ratings" System
+
+**Goal:** Adapt the logging flow for shared spaces and implement the core "Your Turn!" social mechanism.
+**Key Document References:** `flicklog.md` (Pillar III), `database_schema.md`
+
+| Task ID | Task Description                                                                                      | Backend/Frontend | TDD Focus (Key Tests) / Verification                                                                                                                                                                       | Status   | Notes/Blockers                                       |
+| :------ | :---------------------------------------------------------------------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- | :--------------------------------------------------- |
+| P2.3.1  | Refactor the `createLogEntry` Server Action to handle both personal and shared spaces.                | Backend          | **Test:** The action now requires a `spaceId`. It verifies the user is a member of that space before proceeding.                                                                                           | ⬜ To Do | This is a major refactor of the action from Phase 1. |
+| P2.3.2  | **[CRITICAL]** Logic for `createLogEntry` in a shared space.                                          | Backend          | **Verification:** When User A logs a new entry, the action creates the `LogEntry`, their `Rating`, and `Comment` records. Then, it creates `PendingRating` records for **all other members** of the space. | ⬜ To Do | This must be transactional.                          |
+| P2.3.3  | Create a UI element (e.g., a "Pending" section on the dashboard) to display a user's pending ratings. | Frontend         | The component fetches and displays all entries from the `PendingRating` table where `user_id` matches the current user.                                                                                    | ⬜ To Do | This queries the `PendingRating` table directly.     |
+| P2.3.4  | Create a "Complete Your Rating" form.                                                                 | Frontend         | This is a simplified version of the main logging form, pre-filled with the movie info. It only needs fields for `rating`, `watched_on`, and comments.                                                      | ⬜ To Do |                                                      |
+| P2.3.5  | Create a `submitPendingRating` Server Action.                                                         | Backend          | **Test:** The action verifies the user has a pending rating for the given `log_entry_id`.                                                                                                                  | ⬜ To Do |                                                      |
+| P2.3.6  | Logic for `submitPendingRating` action.                                                               | Backend          | **Verification:** The action creates the user's `Rating` and `Comment` records, then **deletes** their corresponding `PendingRating` record.                                                               | ⬜ To Do | This must be transactional.                          |
+
+---
+
+### Milestone 2.4: Real-time "Pending Ratings" Notifications
+
+**Goal:** Use Supabase Realtime to provide instant feedback to users when it's their turn to rate a movie, enhancing the app's interactive feel.
+**Key Document References:** `tech_stack.md`, `flicklog.md` (Pillar III)
+
+| Task ID | Task Description                                                                  | Backend/Frontend | Verification (How to Confirm)                                                                                                                 | Status   | Notes/Blockers                                    |
+| :------ | :-------------------------------------------------------------------------------- | :--------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- | :------- | :------------------------------------------------ |
+| P2.4.1  | Enable Supabase Realtime for the `PendingRating` table in the Supabase dashboard. | Backend          | The toggle for the table is enabled under Database > Replication.                                                                             | ⬜ To Do |                                                   |
+| P2.4.2  | Create a client-side hook, e.g., `usePendingRatingsSubscription`.                 | Frontend         | The hook exists and uses the Supabase client library to subscribe to changes.                                                                 | ⬜ To Do |                                                   |
+| P2.4.3  | Implement the subscription logic.                                                 | Frontend         | The hook subscribes to `INSERT` events on the `PendingRating` table where `user_id` matches the current user.                                 | ⬜ To Do | `channel.on('postgres_changes', ...)`             |
+| P2.4.4  | Implement a simple UI notification (e.g., a "toast" or a badge).                  | Frontend         | **Verification:** When User A logs a movie, User B (with the app open) sees an instant notification saying "Your Turn! The Matrix was added." | ⬜ To Do | Use a library like `sonner` or `react-hot-toast`. |
+| P2.4.5  | Implement the `useEffect` cleanup function in the hook.                           | Frontend         | The hook correctly unsubscribes from the channel when the component unmounts to prevent memory leaks.                                         | ⬜ To Do | `return () => supabase.removeChannel(channel)`    |
+
+---
+
+### Milestone 2.5: The Shared Library View
+
+**Goal:** Adapt the visual library to display ratings from all members in a shared space, showing who has rated what.
+**Key Document References:** `flicklog.md` (Pillar II), `design_guideline.md`
+
+| Task ID | Task Description                                                                                                                                   | Backend/Frontend | Verification (How to Confirm)                                                                                                          | Status   | Notes/Blockers                                                                                         |
+| :------ | :------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------- | :------- | :----------------------------------------------------------------------------------------------------- |
+| P2.5.1  | Create a dynamic page for viewing a specific space, e.g., `/spaces/[spaceId]`.                                                                     | Frontend         | The page fetches the space details and all its associated `LogEntry` records.                                                          | ⬜ To Do |                                                                                                        |
+| P2.5.2  | Update the Prisma query to fetch `LogEntry` and `include` all related `Rating` records, along with the `Profile` of the user who made each rating. | Backend          | The query returns the nested data structure needed by the UI.                                                                          | ⬜ To Do | `prisma.logEntry.findMany({ include: { ratings: { include: { user: { include: { profile: true }}}}}})` |
+| P2.5.3  | Refactor the `LogEntryCard` to handle multiple ratings.                                                                                            | Frontend         | The component now accepts an array of ratings.                                                                                         | ⬜ To Do |                                                                                                        |
+| P2.5.4  | Design and implement the UI to display multiple ratings on a card.                                                                                 | Frontend         | The card shows the movie poster and a list/grid of member avatars with their corresponding star rating next to them.                   | ⬜ To Do | A user who hasn't rated yet might show a greyed-out avatar or a "Pending" status.                      |
+| P2.5.5  | Create a "space switcher" UI component.                                                                                                            | Frontend         | A dropdown or sidebar that lists all spaces a user is a member of (both personal and shared) and allows them to navigate between them. | ⬜ To Do |                                                                                                        |
+
+---
+
+### **End of Phase 2 Review:**
+
+- **Can a user create a shared space and invite others?** ⬜
+- **Is the application secure with Row Level Security?** ⬜
+- **Does logging a movie in a shared space correctly create pending ratings for others?** ⬜
+- **Do users receive real-time notifications when it's their turn?** ⬜
+- **Does the shared library view correctly display ratings from all members?** ⬜
+- **Can users easily navigate between their different spaces?** ⬜
