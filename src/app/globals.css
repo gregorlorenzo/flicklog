@@ -1,4 +1,4 @@
-/* app/globals.css */
+/* src/app/globals.css */
 @import 'tailwindcss';
 @import "tw-animate-css";
 
@@ -12,53 +12,34 @@
 @theme {
   --font-heading: var(--font-poppins), sans-serif;
   --font-body: var(--font-source-sans-pro), sans-serif;
-
   --color-success: #10B981;
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --color-info: #3B82F6;
-
   --color-flicklog-accent-teal: oklch(0.485 0.05 214.3);
 }
 
 :root {
-  /* Base Layout */
-  --background: oklch(0.151 0.012 259.4); /* #1A1D23 */
-  --foreground: oklch(0.914 0.011 82.9);  /* #EAE6E1 */
-
-  /* Cards, Inputs, Popovers */
-  --card: oklch(0.203 0.014 259.6);          /* #252931 */
+  --background: oklch(0.151 0.012 259.4);
+  --foreground: oklch(0.914 0.011 82.9);
+  --card: oklch(0.203 0.014 259.6);
   --card-foreground: oklch(0.914 0.011 82.9);
   --popover: oklch(0.203 0.014 259.6);
   --popover-foreground: oklch(0.914 0.011 82.9);
-
-  /* Primary Accent (Gold) for Buttons, Links */
-  --primary: oklch(0.704 0.094 78.4);        /* #D4A269 */
-  --primary-foreground: oklch(0.151 0.012 259.4); /* Dark text on gold buttons */
-
-  /* Secondary Buttons */
-  --secondary: oklch(0.203 0.014 259.6); /* Card background */
-  --secondary-foreground: oklch(0.704 0.094 78.4); /* Gold text */
-
-  /* Muted Text */
+  --primary: oklch(0.704 0.094 78.4);
+  --primary-foreground: oklch(0.151 0.012 259.4);
+  --secondary: oklch(0.203 0.014 259.6);
+  --secondary-foreground: oklch(0.704 0.094 78.4);
   --muted: oklch(0.203 0.014 259.6);
-  --muted-foreground: oklch(0.914 0.011 82.9 / 0.6); /* Light text at 60% opacity */
-
-  /* Hover states, etc. */
+  --muted-foreground: oklch(0.914 0.011 82.9 / 0.6);
   --accent: oklch(0.203 0.014 259.6);
   --accent-foreground: oklch(0.914 0.011 82.9);
-
-  /* Destructive Actions */
-  --destructive: oklch(0.577 0.245 27.325); /* Default red is fine */
+  --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.914 0.011 82.9);
-
-  /* Borders and Rings */
-  --border: oklch(0.704 0.094 78.4 / 0.2); /* Faint gold border */
+  --border: oklch(0.704 0.094 78.4 / 0.2);
   --input: oklch(0.704 0.094 78.4 / 0.2);
-  --ring: oklch(0.704 0.094 78.4 / 0.8); /* Stronger gold for focus rings */
-
-  /* Misc */
-  --radius: 0.5rem; /* 8px */
+  --ring: oklch(0.704 0.094 78.4 / 0.8);
+  --radius: 0.5rem;
 }
 
 .dark {
@@ -81,6 +62,32 @@
   --border: oklch(0.704 0.094 78.4 / 0.2);
   --input: oklch(0.704 0.094 78.4 / 0.2);
   --ring: oklch(0.704 0.094 78.4 / 0.8);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 @layer base {
