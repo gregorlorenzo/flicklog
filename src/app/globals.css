@@ -8,17 +8,19 @@
 */
 @theme {
   fontFamily: {
-    heading: "var(--font-poppins)";
-    body: "var(--font-source-sans-pro)";
+    heading: "var(--font-poppins)",
+    body: "var(--font-source-sans-pro)",
   },
+  /* 
+  * This creates bg-success, text-warning, etc. utilities
+  * All theme colors must be a flat key-value list.
+  */
   colors: {
-    success: "#10B981";
-    warning: "#F59E0B";
-    error: "#EF4444";
-    info: "#3B82F6";
-    flicklog: {
-      "accent-teal": "oklch(0.485 0.05 214.3)";
-    },
+    success: "#10B981",
+    warning: "#F59E0B",
+    error: "#EF4444",
+    info: "#3B82F6",
+    "flicklog-accent-teal": "oklch(0.485 0.05 214.3)",
   },
 }
 
