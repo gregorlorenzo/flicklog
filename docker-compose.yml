@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: flicklog-user
+      POSTGRES_PASSWORD: flicklog-password
+      POSTGRES_DB: flicklog
+    ports:
+      - '5432:5432'
+    volumes:
+      - flicklog-data:/var/lib/postgresql/data
+
+volumes:
+  flicklog-data:
