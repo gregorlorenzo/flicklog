@@ -100,22 +100,6 @@ export const getTmdbImageConfig = cache(async (): Promise<TmdbImageConfig> => {
 });
 
 /**
- * A utility function to build a full image URL for a TMDB poster.
- * @param posterPath - The path from the TMDB API (e.g., /f89U3ADr1oiB1s9Gz0gSbn0QhTm.jpg)
- * @param size - The desired poster size. Defaults to 'w500'.
- * @returns {Promise<string>} The full, absolute URL for the image.
- */
-export async function buildPosterUrl(posterPath: string, size: string = 'w500'): Promise<string> {
-    const config = await getTmdbImageConfig();
-    if (!config || !config.secure_base_url || !posterPath) {
-        // Return a placeholder or a default image URL if config or path is missing
-        return '/placeholder-poster.png'; // Make sure you have this in your /public folder
-    }
-    return `${config.secure_base_url}${size}${posterPath}`;
-}
-
-
-/**
  * Searches for movies on TMDB based on a query string.
  * This is not cached as results are dynamic per query.
  *
