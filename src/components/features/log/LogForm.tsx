@@ -3,9 +3,10 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
-import { CalendarIcon } from 'lucide-react';
-import { createLogEntry } from '@/actions/log-actions';
+import { CalendarIcon, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
+import { createLogEntry } from '@/actions/log-actions';
 import { LogEntryFormValues, logEntrySchema } from '@/lib/schemas/log-schema';
 import { cn } from '@/lib/utils';
 
@@ -30,8 +31,12 @@ import {
 import { StarRating } from '@/components/shared/StarRating';
 import { TmdbSearch } from './TmdbSearch';
 
+interface LogFormProps {
+    spaceId: string;
+}
 
-export function LogForm() {
+export function LogForm({ spaceId }: LogFormProps) {
+
     const form = useForm<LogEntryFormValues>({
         resolver: zodResolver(logEntrySchema),
         defaultValues: {
@@ -45,17 +50,31 @@ export function LogForm() {
     });
 
     async function onSubmit(values: LogEntryFormValues) {
-        const result = await createLogEntry(values);
+        const toastId = toast.loading('Logging your entry...');
+
+        const result = await createLogEntry(spaceId, values);
+
         if (!result.success) {
-            console.error('Failed to create log entry:', result.message);
-            alert(`Error: ${result.message}`); // Simple alert for now
+            if (result.fieldErrors) {
+                for (const [field, errors] of Object.entries(result.fieldErrors)) {
+                    form.setError(field as keyof LogEntryFormValues, {
+                        type: 'server',
+                        message: errors.join(', '),
+                    });
+                }
+                toast.error('Please correct the errors in the form.', { id: toastId });
+            } else {
+                toast.error(result.error, { id: toastId });
+            }
+        } else {
+            toast.success('Entry logged successfully!', { id: toastId });
         }
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-
+                {/* ... (rest of the form is unchanged) ... */}
                 <FormField
                     control={form.control}
                     name="tmdbId"
@@ -163,8 +182,12 @@ export function LogForm() {
                         </FormItem>
                     )}
                 />
-
-                <Button type="submit">Log Entry</Button>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Log Entry
+                </Button>
             </form>
         </Form>
     );
