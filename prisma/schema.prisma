@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -26,7 +23,7 @@ enum CommentType {
 }
 
 model Profile {
-  user_id      String   @id @default(uuid())
+  user_id      String   @id @db.Uuid
   username     String   @unique
   display_name String?
   avatar_url   String?
@@ -41,10 +38,10 @@ model Profile {
 }
 
 model Space {
-  id        String    @id @default(uuid())
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name      String
   type      SpaceType @default(PERSONAL)
-  owner_id  String
+  owner_id  String    @db.Uuid
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
@@ -56,8 +53,8 @@ model Space {
 }
 
 model SpaceMember {
-  user_id  String
-  space_id String
+  user_id  String          @db.Uuid
+  space_id String          @db.Uuid
   role     SpaceMemberRole @default(MEMBER)
 
   user  Profile @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
@@ -67,8 +64,8 @@ model SpaceMember {
 }
 
 model LogEntry {
-  id        String   @id @default(uuid())
-  space_id  String
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  space_id  String   @db.Uuid
   tmdb_id   String
   tmdb_type String
   createdAt DateTime @default(now())
@@ -81,9 +78,9 @@ model LogEntry {
 }
 
 model Rating {
-  id           String   @id @default(uuid())
-  log_entry_id String
-  user_id      String
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  log_entry_id String   @db.Uuid
+  user_id      String   @db.Uuid
   value        Float
   watched_on   DateTime
   createdAt    DateTime @default(now())
@@ -95,9 +92,9 @@ model Rating {
 }
 
 model Comment {
-  id        String      @id @default(uuid())
-  rating_id String
-  user_id   String
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  rating_id String      @db.Uuid
+  user_id   String      @db.Uuid
   type      CommentType
   content   String
   createdAt DateTime    @default(now())
@@ -108,8 +105,8 @@ model Comment {
 }
 
 model PendingRating {
-  log_entry_id String
-  user_id      String
+  log_entry_id String @db.Uuid
+  user_id      String @db.Uuid
 
   log_entry LogEntry @relation(fields: [log_entry_id], references: [id], onDelete: Cascade)
   user      Profile  @relation(fields: [user_id], references: [user_id], onDelete: Cascade)

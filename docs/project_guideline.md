@@ -58,7 +58,25 @@ interface LogFormProps {
 }
 ```
 
----
+### Working with Next.js 15+ Async Props
+
+Next.js 15 introduced async props for dynamic APIs like `searchParams`. To access these, components must be declared `async` and the prop must be `await`-ed before use.
+
+**Correct Pattern:**
+
+```typescript
+// Note the async function and Promise<> type
+export default async function SearchPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ query?: string }>
+}) {
+  // Await the promise before accessing its properties
+  const { query } = await searchParams;
+
+  return <div>Searching for: {query}</div>;
+}
+```
 
 ## 3. Testing Standards
 
@@ -205,7 +223,7 @@ export async function createLogEntry(
 
 ## 9. CI/CD & Deployment
 
-### Deployment Pipeline
+### Vercel Deployment Pipeline
 
 Our deployment process is streamlined through Vercel's Git integration.
 
@@ -213,6 +231,32 @@ Our deployment process is streamlined through Vercel's Git integration.
 2. **Pull Request Checks:** When a PR is opened, Vercel automatically runs tests and a build check. The build command is `prisma generate && next build`. A preview deployment is generated for review.
 3. **Production Deploy:** Merging a PR to the `main` branch automatically deploys the latest version to production.
 
+### Database Deployment Workflow
+
+Deploying database changes requires a specific, automated process to ensure consistency between local and remote environments.
+
+#### **Local Development (Changing the Schema)**
+
+When making changes to the `prisma/schema.prisma` file, generate a new migration using the dedicated script. This command uses `.env.local` to target your local Docker database.
+
+```bash
+# Creates a new migration file based on your schema changes
+pnpm db:migrate:dev --name <your-change-description>
+```
+
+#### **Remote Deployment (To a New or Existing Environment)**
+
+To apply all pending migrations and set up necessary database functions/triggers, use the automated deploy script. This command uses `.env` to target the remote Supabase database.
+
+```bash
+# This is the single command for deploying all DB changes.
+pnpm db:deploy
+```
+
+This script performs two critical actions in sequence:
+
+1. `pnpm prisma migrate deploy`: Applies all pending migrations from the `prisma/migrations` folder.
+2. `dotenv -- bash -c 'psql ...'`: Connects to the same database and runs the `prisma/setup.sql` file, which contains our custom triggers and functions. The `dotenv -- bash -c` wrapper is essential for correctly loading environment variables in the shell context.
 ---
 
 ## 10. Security Best Practices

@@ -4,6 +4,10 @@ This document is the source of truth for the Flicklog database design. It serves
 
 ## Guiding Principles
 
+### Database-Level Defaults for Cross-System Compatibility
+
+When creating columns that need default values (like UUIDs for primary keys), we MUST use **database-level default generators** (e.g., `@default(dbgenerated("gen_random_uuid()"))`) instead of Prisma-Client-only functions (e.g., `@default(uuid())`). This ensures that raw SQL operations, such as our Supabase `handle_new_user` trigger, can successfully `INSERT` new rows without violating `NOT NULL` constraints, as the database itself will generate the value.
+
 - **Normalize Data:** We avoid duplicating data. For example, movie details (title, poster) are not stored in our database; we only store the `tmdb_id` and fetch details from the TMDB API.
 - **Supabase Integration:** The schema is designed to work seamlessly with Supabase Auth and Row Level Security (RLS).
 - **Clarity over Cleverness:** The relationships and models should be straightforward and easy to understand.

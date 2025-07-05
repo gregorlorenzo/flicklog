@@ -7,10 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "db:migrate:dev": "dotenv -e .env.local -- npx prisma migrate dev"
+    "db:migrate:dev": "dotenv -e .env.local -- npx prisma migrate dev",
+    "db:reset": "dotenv -e .env.local -- npx prisma migrate reset",
+    "db:deploy": "dotenv -- bash -c 'pnpm prisma migrate deploy && psql \"$DATABASE_URL\" -f prisma/setup.sql'"
   },
   "dependencies": {
     "@prisma/client": "^6.11.0",
+    "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.2",
