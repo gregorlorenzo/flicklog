@@ -6,11 +6,15 @@ import { buildPosterUrl } from '@/lib/tmdb/tmdb-utils';
 import { getTmdbMediaDetails } from '@/lib/tmdb/tmdb-client';
 import { CompleteRatingForm } from '@/components/features/log/complete-rating-form';
 
+interface PageProps {
+    params: Promise<{ logEntryId: string }>;
+}
+
 export default async function CompleteRatingPage({
     params,
-}: {
-    params: { logEntryId: string };
-}) {
+}: PageProps) {
+    const { logEntryId } = await params;
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -21,7 +25,7 @@ export default async function CompleteRatingPage({
     const pendingRating = await prisma.pendingRating.findUnique({
         where: {
             log_entry_id_user_id: {
-                log_entry_id: params.logEntryId,
+                log_entry_id: logEntryId,
                 user_id: user.id,
             },
             log_entry: {
@@ -42,6 +46,7 @@ export default async function CompleteRatingPage({
     }
 
     const { log_entry } = pendingRating;
+
     const mediaDetails = await getTmdbMediaDetails(
         log_entry.tmdb_id,
         log_entry.tmdb_type as 'movie' | 'tv'
