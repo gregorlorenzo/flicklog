@@ -90,7 +90,7 @@ export default async function SpaceSettingsPage({
                     Space Settings
                 </h1>
                 <p className="text-muted-foreground text-lg">
-                    Manage your shared space "{space.name}".
+                    Manage your shared space &quot;{space.name}&quot;.
                 </p>
             </div>
 
