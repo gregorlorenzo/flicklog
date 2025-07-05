@@ -67,12 +67,14 @@ function getInitials(name: string | null | undefined): string {
 export default async function SpaceSettingsPage({
     params,
 }: {
-    params: { spaceId: string };
+    params: Promise<{ spaceId: string }>;
 }) {
     const supabase = await createClient();
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
-    const space = await getSpaceWithMembers(params.spaceId);
+    const { spaceId } = await params;
+
+    const space = await getSpaceWithMembers(spaceId);
 
     if (!space || !currentUser) {
         return notFound();
@@ -110,12 +112,11 @@ export default async function SpaceSettingsPage({
                                 {space.members.map(({ user: profile, role }) => {
                                     if (!profile) return null;
 
-                                    // Determine if the remove button should be shown for this member
                                     const canBeRemoved =
-                                        isCurrentUserAdmin &&        // Current user is an admin
-                                        profile.user_id !== currentUser.id && // Not removing self
-                                        profile.user_id !== space.owner_id && // Not removing the owner
-                                        role !== 'ADMIN';             // Not removing another admin
+                                        isCurrentUserAdmin &&  
+                                        profile.user_id !== currentUser.id &&
+                                        profile.user_id !== space.owner_id && 
+                                        role !== 'ADMIN'; 
 
                                     return (
                                         <li
