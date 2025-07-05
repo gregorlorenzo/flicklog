@@ -3,6 +3,7 @@ import { Poppins, Source_Sans_3 as SourceSansPro } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from '@/components/ui/sonner';
+import { RealtimeNotificationProvider } from '@/components/providers/realtime-provider';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -39,6 +40,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster richColors />
+        <RealtimeNotificationProvider />
       </body>
     </html>
   );
