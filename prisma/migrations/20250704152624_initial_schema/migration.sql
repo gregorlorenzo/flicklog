@@ -9,7 +9,7 @@ CREATE TYPE "CommentType" AS ENUM ('QUICK_TAKE', 'DEEPER_THOUGHTS');
 
 -- CreateTable
 CREATE TABLE "Profile" (
-    "user_id" TEXT NOT NULL,
+    "user_id" UUID NOT NULL,
     "username" TEXT NOT NULL,
     "display_name" TEXT,
     "avatar_url" TEXT,
@@ -21,10 +21,10 @@ CREATE TABLE "Profile" (
 
 -- CreateTable
 CREATE TABLE "Space" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "type" "SpaceType" NOT NULL DEFAULT 'PERSONAL',
-    "owner_id" TEXT NOT NULL,
+    "owner_id" UUID NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
@@ -33,8 +33,8 @@ CREATE TABLE "Space" (
 
 -- CreateTable
 CREATE TABLE "SpaceMember" (
-    "user_id" TEXT NOT NULL,
-    "space_id" TEXT NOT NULL,
+    "user_id" UUID NOT NULL,
+    "space_id" UUID NOT NULL,
     "role" "SpaceMemberRole" NOT NULL DEFAULT 'MEMBER',
 
     CONSTRAINT "SpaceMember_pkey" PRIMARY KEY ("user_id","space_id")
@@ -42,8 +42,8 @@ CREATE TABLE "SpaceMember" (
 
 -- CreateTable
 CREATE TABLE "LogEntry" (
-    "id" TEXT NOT NULL,
-    "space_id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "space_id" UUID NOT NULL,
     "tmdb_id" TEXT NOT NULL,
     "tmdb_type" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -53,9 +53,9 @@ CREATE TABLE "LogEntry" (
 
 -- CreateTable
 CREATE TABLE "Rating" (
-    "id" TEXT NOT NULL,
-    "log_entry_id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "log_entry_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "value" DOUBLE PRECISION NOT NULL,
     "watched_on" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -66,9 +66,9 @@ CREATE TABLE "Rating" (
 
 -- CreateTable
 CREATE TABLE "Comment" (
-    "id" TEXT NOT NULL,
-    "rating_id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "rating_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
     "type" "CommentType" NOT NULL,
     "content" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -79,8 +79,8 @@ CREATE TABLE "Comment" (
 
 -- CreateTable
 CREATE TABLE "PendingRating" (
-    "log_entry_id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "log_entry_id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
 
     CONSTRAINT "PendingRating_pkey" PRIMARY KEY ("log_entry_id","user_id")
 );
