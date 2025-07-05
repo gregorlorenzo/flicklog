@@ -73,7 +73,7 @@ export default async function CompleteRatingPage({
             <div className="md:col-span-2">
                 <h2 className="font-heading text-3xl font-semibold">Your Turn!</h2>
                 <p className="mt-1 text-lg text-muted-foreground">
-                    Add your rating for "{mediaTitle}".
+                    Add your rating for &quot;{mediaTitle}&quot;.
                 </p>
                 <div className="mt-8">
                     <CompleteRatingForm logEntryId={log_entry.id} />
