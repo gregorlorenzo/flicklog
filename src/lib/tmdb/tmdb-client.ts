@@ -61,6 +61,18 @@ interface TmdbPaginatedResponse<T> {
     total_results: number;
 }
 
+export interface TmdbTvShowDetails {
+    id: number;
+    name: string;
+    overview: string;
+    poster_path: string | null;
+    backdrop_path: string | null;
+    first_air_date: string;
+    episode_run_time: number[];
+    number_of_seasons: number;
+    genres: { id: number; name: string }[];
+}
+
 // --- API Functions ---
 
 /**
@@ -199,5 +211,70 @@ export async function getMovieDetails(movieId: number): Promise<TmdbMovieDetails
     } catch (error) {
         console.error('TMDB API Error:', error);
         throw new Error('Could not fetch movie details.');
+    }
+}
+
+/**
+ * Fetches detailed information for a specific TV show from TMDB.
+ * The result of this function is cached by Next.js fetch.
+ *
+ * @param tvId - The ID of the TV show to fetch.
+ * @returns {Promise<TmdbTvShowDetails>} The detailed TV show object.
+ */
+export async function getTvShowDetails(tvId: number): Promise<TmdbTvShowDetails> {
+    const url = `${TMDB_API_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&language=en-US`;
+    const options = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+        },
+        next: {
+            revalidate: 3600 * 24,
+        },
+    };
+
+    try {
+        const res = await fetch(url, options);
+        if (!res.ok) {
+            console.error(`Failed to get TV show details: ${res.status} ${res.statusText}`);
+            throw new Error(`Failed to get details for TV show ID: ${tvId}`);
+        }
+        const data: TmdbTvShowDetails = await res.json();
+        return data;
+    } catch (error) {
+        console.error('TMDB API Error:', error);
+        throw new Error('Could not fetch TV show details.');
+    }
+}
+
+/**
+ * Fetches the detailed information for a specific movie or TV show.
+ * This is a higher-level abstraction that calls the correct specific function.
+ * It also handles potential errors gracefully by returning null.
+ *
+ * @param id The TMDB ID of the media (as a string, will be parsed).
+ * @param type The type of media, 'movie' or 'tv'.
+ * @returns The detailed media object from TMDB API or null on error.
+ */
+export async function getTmdbMediaDetails(
+    id: string,
+    type: 'movie' | 'tv'
+): Promise<TmdbMovieDetails | TmdbTvShowDetails | null> {
+    try {
+        const numericId = parseInt(id, 10);
+        if (isNaN(numericId)) {
+            throw new Error('Invalid media ID provided.');
+        }
+
+        if (type === 'movie') {
+            return await getMovieDetails(numericId);
+        } else if (type === 'tv') {
+            return await getTvShowDetails(numericId);
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error(`Error in getTmdbMediaDetails for ${type}:${id}:`, error);
+        return null;
     }
 }
