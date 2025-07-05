@@ -1,5 +1,3 @@
--- prisma/setup.sql
-
 -- Step 1: Add the foreign key constraint to link our Profile table to Supabase's auth table.
 -- This ensures data integrity.
 alter table public."Profile"
@@ -40,3 +38,135 @@ $$;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ---------------------------------------------
+-- Table: SpaceMember
+-- ---------------------------------------------
+-- 1. Enable RLS
+ALTER TABLE public."SpaceMember" ENABLE ROW LEVEL SECURITY;
+
+-- 2. Drop existing policies
+DROP POLICY IF EXISTS "Allow members to see other members in the same space" ON public."SpaceMember";
+DROP POLICY IF EXISTS "Allow admins to add new members to a space" ON public."SpaceMember";
+DROP POLICY IF EXISTS "Allow admins to change member roles" ON public."SpaceMember";
+DROP POLICY IF EXISTS "Allow admins to remove members from a space" ON public."SpaceMember";
+
+-- 3. Create Policies
+CREATE POLICY "Allow members to see other members in the same space"
+ON public."SpaceMember" FOR SELECT
+USING (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."SpaceMember".space_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow admins to add new members to a space"
+ON public."SpaceMember" FOR INSERT
+WITH CHECK (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."SpaceMember".space_id AND sm.user_id = auth.uid() AND sm.role = 'ADMIN'));
+
+CREATE POLICY "Allow admins to change member roles"
+ON public."SpaceMember" FOR UPDATE
+USING (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."SpaceMember".space_id AND sm.user_id = auth.uid() AND sm.role = 'ADMIN'));
+
+CREATE POLICY "Allow admins to remove members from a space"
+ON public."SpaceMember" FOR DELETE
+USING (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."SpaceMember".space_id AND sm.user_id = auth.uid() AND sm.role = 'ADMIN'));
+
+-- ---------------------------------------------
+-- Table: LogEntry
+-- ---------------------------------------------
+-- 1. Enable RLS
+ALTER TABLE public."LogEntry" ENABLE ROW LEVEL SECURITY;
+
+-- 2. Drop existing policies
+DROP POLICY IF EXISTS "Allow members to view log entries in their spaces" ON public."LogEntry";
+DROP POLICY IF EXISTS "Allow members to create log entries in their spaces" ON public."LogEntry";
+DROP POLICY IF EXISTS "Allow admins to update log entries" ON public."LogEntry";
+DROP POLICY IF EXISTS "Allow admins to delete log entries" ON public."LogEntry";
+
+-- 3. Create Policies
+CREATE POLICY "Allow members to view log entries in their spaces"
+ON public."LogEntry" FOR SELECT
+USING (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."LogEntry".space_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow members to create log entries in their spaces"
+ON public."LogEntry" FOR INSERT
+WITH CHECK (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."LogEntry".space_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow admins to update log entries"
+ON public."LogEntry" FOR UPDATE
+USING (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."LogEntry".space_id AND sm.user_id = auth.uid() AND sm.role = 'ADMIN'));
+
+CREATE POLICY "Allow admins to delete log entries"
+ON public."LogEntry" FOR DELETE
+USING (EXISTS (SELECT 1 FROM public."SpaceMember" sm WHERE sm.space_id = public."LogEntry".space_id AND sm.user_id = auth.uid() AND sm.role = 'ADMIN'));
+
+-- ---------------------------------------------
+-- Table: Rating
+-- ---------------------------------------------
+ALTER TABLE public."Rating" ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow members to view ratings in their spaces" ON public."Rating";
+DROP POLICY IF EXISTS "Allow members to create their own ratings" ON public."Rating";
+DROP POLICY IF EXISTS "Allow users to modify their own ratings" ON public."Rating";
+DROP POLICY IF EXISTS "Allow users to delete their own ratings" ON public."Rating";
+
+CREATE POLICY "Allow members to view ratings in their spaces"
+ON public."Rating" FOR SELECT
+USING (EXISTS (SELECT 1 FROM public."LogEntry" le JOIN public."SpaceMember" sm ON le.space_id = sm.space_id WHERE le.id = public."Rating".log_entry_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow members to create their own ratings"
+ON public."Rating" FOR INSERT
+WITH CHECK (public."Rating".user_id = auth.uid() AND EXISTS (SELECT 1 FROM public."LogEntry" le JOIN public."SpaceMember" sm ON le.space_id = sm.space_id WHERE le.id = public."Rating".log_entry_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow users to modify their own ratings"
+ON public."Rating" FOR UPDATE
+USING (user_id = auth.uid());
+
+CREATE POLICY "Allow users to delete their own ratings"
+ON public."Rating" FOR DELETE
+USING (user_id = auth.uid());
+
+
+-- ---------------------------------------------
+-- Table: Comment
+-- ---------------------------------------------
+ALTER TABLE public."Comment" ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow members to view comments in their spaces" ON public."Comment";
+DROP POLICY IF EXISTS "Allow members to create their own comments" ON public."Comment";
+DROP POLICY IF EXISTS "Allow users to modify their own comments" ON public."Comment";
+DROP POLICY IF EXISTS "Allow users to delete their own comments" ON public."Comment";
+
+CREATE POLICY "Allow members to view comments in their spaces"
+ON public."Comment" FOR SELECT
+USING (EXISTS (SELECT 1 FROM public."Rating" r JOIN public."LogEntry" le ON r.log_entry_id = le.id JOIN public."SpaceMember" sm ON le.space_id = sm.space_id WHERE r.id = public."Comment".rating_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow members to create their own comments"
+ON public."Comment" FOR INSERT
+WITH CHECK (public."Comment".user_id = auth.uid() AND EXISTS (SELECT 1 FROM public."Rating" r JOIN public."LogEntry" le ON r.log_entry_id = le.id JOIN public."SpaceMember" sm ON le.space_id = sm.space_id WHERE r.id = public."Comment".rating_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow users to modify their own comments"
+ON public."Comment" FOR UPDATE
+USING (user_id = auth.uid());
+
+CREATE POLICY "Allow users to delete their own comments"
+ON public."Comment" FOR DELETE
+USING (user_id = auth.uid());
+
+-- ---------------------------------------------
+-- Table: PendingRating
+-- ---------------------------------------------
+ALTER TABLE public."PendingRating" ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow user to see their own pending ratings" ON public."PendingRating";
+DROP POLICY IF EXISTS "Allow space members to create pending ratings for others" ON public."PendingRating";
+DROP POLICY IF EXISTS "Allow user to delete their own pending ratings" ON public."PendingRating";
+
+CREATE POLICY "Allow user to see their own pending ratings"
+ON public."PendingRating" FOR SELECT
+USING (user_id = auth.uid());
+
+CREATE POLICY "Allow space members to create pending ratings for others"
+ON public."PendingRating" FOR INSERT
+WITH CHECK (EXISTS (SELECT 1 FROM public."LogEntry" le JOIN public."SpaceMember" sm ON le.space_id = sm.space_id WHERE le.id = public."PendingRating".log_entry_id AND sm.user_id = auth.uid()));
+
+CREATE POLICY "Allow user to delete their own pending ratings"
+ON public."PendingRating" FOR DELETE
+USING (user_id = auth.uid());
