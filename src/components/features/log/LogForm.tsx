@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
+import { createLogEntry } from '@/actions/log-actions';
 
 import { LogEntryFormValues, logEntrySchema } from '@/lib/schemas/log-schema';
 import { cn } from '@/lib/utils';
@@ -43,8 +44,12 @@ export function LogForm() {
         },
     });
 
-    function onSubmit(values: LogEntryFormValues) {
-        console.log('Form Submitted:', values);
+    async function onSubmit(values: LogEntryFormValues) {
+        const result = await createLogEntry(values);
+        if (!result.success) {
+            console.error('Failed to create log entry:', result.message);
+            alert(`Error: ${result.message}`); // Simple alert for now
+        }
     }
 
     return (
