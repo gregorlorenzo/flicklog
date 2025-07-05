@@ -64,7 +64,7 @@ export default async function HomePage() {
         <div>
           <h1 className="text-3xl font-bold font-heading">Your Library</h1>
           <p className="text-muted-foreground">
-            All the movies and shows you've logged.
+            All the movies and shows you&apos;ve logged.
           </p>
         </div>
         <Link href="/log/new">
