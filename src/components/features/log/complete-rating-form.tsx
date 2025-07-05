@@ -1,63 +1,64 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { format } from 'date-fns';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { createLogEntry } from '@/actions/log-actions';
-import { LogEntryFormValues, logEntrySchema } from '@/lib/schemas/log-schema';
-import { cn } from '@/lib/utils';
-
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
+import {
+    completeRatingSchema,
+    type CompleteRatingFormValues,
+} from '@/lib/schemas/log-schema';
 import {
     Form,
     FormControl,
+    FormDescription,
     FormField,
     FormItem,
     FormLabel,
     FormMessage,
-    FormDescription,
 } from '@/components/ui/form';
+import { submitPendingRating } from '@/actions/log-actions';
+import { Button } from '@/components/ui/button';
+import { StarRating } from '@/components/shared/StarRating';
+import { Calendar } from '@/components/ui/calendar';
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { StarRating } from '@/components/shared/StarRating';
-import { TmdbSearch } from './TmdbSearch';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
 
-interface LogFormProps {
-    spaceId: string;
+interface CompleteRatingFormProps {
+    logEntryId: string;
 }
 
-export function LogForm({ spaceId }: LogFormProps) {
-
-    const form = useForm<LogEntryFormValues>({
-        resolver: zodResolver(logEntrySchema),
+/**
+ * A client form for completing a pending rating.
+ */
+export function CompleteRatingForm({ logEntryId }: CompleteRatingFormProps) {
+    const form = useForm<CompleteRatingFormValues>({
+        resolver: zodResolver(completeRatingSchema),
         defaultValues: {
-            tmdbId: '',
-            tmdbType: 'movie',
-            watchedOn: new Date(),
             rating: 0,
+            watchedOn: new Date(),
             quickTake: '',
             deeperThoughts: '',
         },
     });
 
-    async function onSubmit(values: LogEntryFormValues) {
-        const toastId = toast.loading('Logging your entry...');
+    async function onSubmit(values: CompleteRatingFormValues) {
+        const toastId = toast.loading('Submitting your rating...');
 
-        const result = await createLogEntry(spaceId, values);
+        const result = await submitPendingRating(logEntryId, values);
 
         if (!result.success) {
             if (result.fieldErrors) {
                 for (const [field, errors] of Object.entries(result.fieldErrors)) {
-                    form.setError(field as keyof LogEntryFormValues, {
+                    form.setError(field as keyof CompleteRatingFormValues, {
                         type: 'server',
                         message: errors.join(', '),
                     });
@@ -67,28 +68,13 @@ export function LogForm({ spaceId }: LogFormProps) {
                 toast.error(result.error, { id: toastId });
             }
         } else {
-            toast.success('Entry logged successfully!', { id: toastId });
+            toast.success('Rating submitted successfully!', { id: toastId });
         }
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* ... (rest of the form is unchanged) ... */}
-                <FormField
-                    control={form.control}
-                    name="tmdbId"
-                    render={() => (
-                        <FormItem>
-                            <FormLabel>Movie / TV Show</FormLabel>
-                            <FormControl>
-                                <TmdbSearch />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
                 <FormField
                     control={form.control}
                     name="rating"
@@ -96,7 +82,10 @@ export function LogForm({ spaceId }: LogFormProps) {
                         <FormItem>
                             <FormLabel>Your Rating</FormLabel>
                             <FormControl>
-                                <StarRating value={field.value} onChange={field.onChange} />
+                                <StarRating
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -108,7 +97,7 @@ export function LogForm({ spaceId }: LogFormProps) {
                     name="watchedOn"
                     render={({ field }) => (
                         <FormItem className="flex flex-col">
-                            <FormLabel>Watched On</FormLabel>
+                            <FormLabel>Date Watched</FormLabel>
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <FormControl>
@@ -152,10 +141,14 @@ export function LogForm({ spaceId }: LogFormProps) {
                         <FormItem>
                             <FormLabel>Quick Take</FormLabel>
                             <FormControl>
-                                <Input placeholder="A brief, public-facing summary or hot take..." {...field} />
+                                <Textarea
+                                    placeholder="A short summary or hot take..."
+                                    className="resize-none"
+                                    {...field}
+                                />
                             </FormControl>
                             <FormDescription>
-                                This short summary may be used for social integrations.
+                                This is a short, public-facing summary.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
@@ -170,23 +163,24 @@ export function LogForm({ spaceId }: LogFormProps) {
                             <FormLabel>Deeper Thoughts</FormLabel>
                             <FormControl>
                                 <Textarea
-                                    placeholder="Your detailed, private notes, inside jokes, or a full review..."
-                                    className="resize-y"
+                                    placeholder="Longer, more private notes and inside jokes..."
+                                    className="min-h-[100px]"
                                     {...field}
                                 />
                             </FormControl>
                             <FormDescription>
-                                These notes are just for you and members of this space.
+                                These notes are just for you and your space members.
                             </FormDescription>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
+
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                     {form.formState.isSubmitting && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
-                    Log Entry
+                    Submit Rating
                 </Button>
             </form>
         </Form>
