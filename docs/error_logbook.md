@@ -63,6 +63,8 @@ For any `severity:critical` incidents, once the issue is resolved, we will condu
 2. **What was the root cause?** (What technical or process failure led to this?)
 3. **How can we prevent this in the future?** (What action items can we take? e.g., add a new test, improve validation, update a RLS policy).
 
+---
+
 ## Incident: Initial Auth & DB Setup Failure (July 2025)
 
 ### 1. Impact
@@ -81,7 +83,7 @@ The failure was not due to a single bug, but a chain reaction of five distinct i
     - Primary keys used `@default(uuid())` (a Prisma-level function) instead of `@default(dbgenerated("gen_random_uuid()"))` (a database-level function).
     - Timestamp fields used `@updatedAt` (Prisma-level) without a database-level `DEFAULT` or `ON UPDATE` trigger.
 3. **Database Connection & Networking:** The local development environment (WSL2) had an IPv6 routing issue, preventing Prisma from connecting to the Supabase direct database host. Attempts to use the connection pooler for migrations failed due to incorrect credentials and the pooler's inherent limitations for schema-altering commands.
-4. **SQL Trigger Logic:** The `handle_new_user` SQL function contained several bugs, including attempting to read from `raw_user_meta_data` instead of the correct `raw_app_meta_data`, and failing to provide values for `NOT NULL` columns like `updated_at`.
+4. **SQL Trigger Logic:** The `handle_new_user` SQL function contained several bugs, including attempting to read from `raw_user_meta_data` instead of the correct `raw_app_meta_data`, and failing to provide values for `NOT NULL` columns like `updatedAt`.
 5. **Deployment Scripting:** The initial `db:deploy` script in `package.json` did not correctly handle shell variable expansion within the `pnpm` context, causing the `psql` command to fail silently by ignoring the `$DATABASE_URL`.
 
 ### 3. Resolution & Key Learnings
