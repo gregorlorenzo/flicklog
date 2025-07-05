@@ -11,7 +11,7 @@ import type { PropsWithChildren } from 'react';
 export default async function SpaceLayout({
     children,
     params,
-}: PropsWithChildren<{ params: { spaceId: string } }>) {
+}: PropsWithChildren<{ params: Promise<{ spaceId: string }> }>) {
     const supabase = await createClient();
     const {
         data: { user },
@@ -21,9 +21,11 @@ export default async function SpaceLayout({
         return notFound();
     }
 
+    const { spaceId } = await params;
+
     const space = await prisma.space.findFirst({
         where: {
-            id: params.spaceId,
+            id: spaceId,
             members: {
                 some: {
                     user_id: user.id,
