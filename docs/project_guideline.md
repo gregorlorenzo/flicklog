@@ -17,10 +17,10 @@ We use the Next.js App Router within a `src/` directory. The structure should be
   - **`src/components/ui/`**: For base UI components from **ShadCN/ui**.
   - **`src/components/shared/`**: For custom, reusable components used across multiple features.
   - **`src/components/features/`**: For complex components tied to a specific feature.
-- **`src/lib/`**: For shared utilities, helpers, and API clients (e.g., `supabase-client.ts`).
+- **`src/lib/`**: For shared utilities, helpers, and API clients (e.g., `db.ts`, `tmdb-utils.ts`).
 - **`src/hooks/`**: For custom React hooks.
 - **`src/actions/`**: For all Next.js Server Actions.
-- **`prisma/`**: For the Prisma schema and migrations.
+- **`prisma/`**: For the Prisma schema, migrations, and setup scripts (`setup.sql`).
 - **`tests/`**: For all test files, mirroring the app structure.
 - **File Naming:**
   - React Components: **PascalCase** (`MovieCard.tsx`).
@@ -77,6 +77,8 @@ export default async function SearchPage({
   return <div>Searching for: {query}</div>;
 }
 ```
+
+---
 
 ## 3. Testing Standards
 
@@ -257,6 +259,7 @@ This script performs two critical actions in sequence:
 
 1. `pnpm prisma migrate deploy`: Applies all pending migrations from the `prisma/migrations` folder.
 2. `dotenv -- bash -c 'psql ...'`: Connects to the same database and runs the `prisma/setup.sql` file, which contains our custom triggers and functions. The `dotenv -- bash -c` wrapper is essential for correctly loading environment variables in the shell context.
+
 ---
 
 ## 10. Security Best Practices
