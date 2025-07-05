@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins, Source_Sans_3 as SourceSansPro } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Toaster } from '@/components/ui/sonner';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -37,6 +38,7 @@ export default function RootLayout({
         )}
       >
         {children}
+        <Toaster richColors />
       </body>
     </html>
   );
