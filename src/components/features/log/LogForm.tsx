@@ -1,5 +1,6 @@
 'use client';
 
+import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
@@ -36,6 +37,7 @@ interface LogFormProps {
 }
 
 export function LogForm({ spaceId }: LogFormProps) {
+    const [isPending, startTransition] = useTransition();
 
     const form = useForm<LogEntryFormValues>({
         resolver: zodResolver(logEntrySchema),
@@ -49,32 +51,29 @@ export function LogForm({ spaceId }: LogFormProps) {
         },
     });
 
-    async function onSubmit(values: LogEntryFormValues) {
-        const toastId = toast.loading('Logging your entry...');
+    function onSubmit(values: LogEntryFormValues) {
+        startTransition(async () => {
+            const result = await createLogEntry(spaceId, values);
 
-        const result = await createLogEntry(spaceId, values);
-
-        if (!result.success) {
-            if (result.fieldErrors) {
-                for (const [field, errors] of Object.entries(result.fieldErrors)) {
-                    form.setError(field as keyof LogEntryFormValues, {
-                        type: 'server',
-                        message: errors.join(', '),
-                    });
+            if (result && !result.success) {
+                if (result.fieldErrors) {
+                    for (const [field, errors] of Object.entries(result.fieldErrors)) {
+                        form.setError(field as keyof LogEntryFormValues, {
+                            type: 'server',
+                            message: errors.join(', '),
+                        });
+                    }
+                    toast.error('Please correct the errors in the form.');
+                } else {
+                    toast.error(result.error);
                 }
-                toast.error('Please correct the errors in the form.', { id: toastId });
-            } else {
-                toast.error(result.error, { id: toastId });
             }
-        } else {
-            toast.success('Entry logged successfully!', { id: toastId });
-        }
+        });
     }
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                {/* ... (rest of the form is unchanged) ... */}
                 <FormField
                     control={form.control}
                     name="tmdbId"
@@ -88,7 +87,6 @@ export function LogForm({ spaceId }: LogFormProps) {
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="rating"
@@ -102,7 +100,6 @@ export function LogForm({ spaceId }: LogFormProps) {
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="watchedOn"
@@ -144,7 +141,6 @@ export function LogForm({ spaceId }: LogFormProps) {
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="quickTake"
@@ -161,7 +157,6 @@ export function LogForm({ spaceId }: LogFormProps) {
                         </FormItem>
                     )}
                 />
-
                 <FormField
                     control={form.control}
                     name="deeperThoughts"
@@ -182,8 +177,8 @@ export function LogForm({ spaceId }: LogFormProps) {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && (
+                <Button type="submit" disabled={isPending}>
+                    {isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Log Entry

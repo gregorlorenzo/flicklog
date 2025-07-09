@@ -76,10 +76,9 @@ export async function createSpace(
         };
     }
 
-    revalidatePath(`/spaces/${newSpace.id}`);
-    revalidatePath('/spaces');
+    revalidatePath(`/spaces/${newSpace.id}/settings`);
 
-    redirect(`/spaces/${newSpace.id}`);
+    redirect(`/spaces/${newSpace.id}/settings`);
 }
 
 /**

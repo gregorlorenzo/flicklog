@@ -2,11 +2,14 @@ import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
 import type { PropsWithChildren } from 'react';
+import Link from 'next/link';
+import { SpaceSwitcher } from '@/components/shared/space-switcher';
+import { buttonVariants } from '@/components/ui/button';
 
 /**
  * Layout for a specific space.
- * It fetches space data and verifies if the current user is a member.
- * If not, it returns a 404 Not Found page.
+ * It fetches space data, verifies membership, and renders a shared header
+ * with a space switcher and other actions.
  */
 export default async function SpaceLayout({
     children,
@@ -38,5 +41,22 @@ export default async function SpaceLayout({
         return notFound();
     }
 
-    return <>{children}</>;
+    return (
+        <div>
+            <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
+                <div className="container flex h-16 items-center justify-between">
+                    <SpaceSwitcher currentSpaceId={spaceId} />
+
+                    <Link
+                        href={`/spaces/${spaceId}/log/new`}
+                        className={buttonVariants({ variant: 'default' })}
+                    >
+                        + Log New Entry
+                    </Link>
+
+                </div>
+            </header>
+            <main>{children}</main>
+        </div>
+    );
 }

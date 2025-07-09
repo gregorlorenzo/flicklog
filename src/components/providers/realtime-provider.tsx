@@ -1,56 +1,97 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { createBrowserClient } from '@supabase/ssr';
-import type { User } from '@supabase/supabase-js';
+import type { RealtimeChannel, Session, SupabaseClient } from '@supabase/supabase-js';
 
-import { useRealtimeSubscription } from '@/hooks/use-realtime-subscription';
-import type { PendingRating } from '@prisma/client';
+import { useSupabase } from '@/components/providers/supabase-provider';
 
-/**
- * A provider component that sets up a real-time subscription
- * for pending rating notifications and displays them as toasts.
- * It only activates when a user is logged in.
- */
+type PendingRatingPayload = {
+    payload: {
+        record: {
+            log_entry_id: string;
+            user_id: string;
+        };
+        schema: string;
+        table: string;
+        commit_timestamp: string;
+        type: 'INSERT' | 'UPDATE' | 'DELETE';
+        old_record: any;
+    };
+    event: string;
+    type: 'broadcast';
+};
+
+const setupRealtimeChannel = async (supabase: SupabaseClient, session: Session) => {
+    await supabase.realtime.setAuth(session.access_token);
+    const userId = session.user.id;
+    const channelName = `user-notifications:${userId}`;
+    const channel = supabase.channel(channelName, {
+        config: { private: true },
+    });
+    return channel;
+};
+
 export function RealtimeNotificationProvider() {
-    const [user, setUser] = useState<User | null>(null);
-    const pathname = usePathname();
+    const router = useRouter();
+    const supabase = useSupabase();
+    const [session, setSession] = useState<Session | null>(null);
 
     useEffect(() => {
-        const supabase = createBrowserClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        const getInitialSession = async () => {
+            const { data } = await supabase.auth.getSession();
+            setSession(data.session);
+        };
+        getInitialSession();
+        const { data: authListener } = supabase.auth.onAuthStateChange(
+            (_event, currentSession) => {
+                setSession(currentSession);
+            }
         );
+        return () => {
+            authListener.subscription.unsubscribe();
+        };
+    }, [supabase]);
 
-        const getUser = async () => {
-            const { data } = await supabase.auth.getUser();
-            setUser(data.user);
+    useEffect(() => {
+        if (!session) return;
+
+        let channel: RealtimeChannel | undefined;
+
+        const initAndSubscribe = async () => {
+            channel = await setupRealtimeChannel(supabase, session);
+
+            channel
+                .on(
+                    'broadcast',
+                    { event: 'new_pending_rating' },
+                    (message: PendingRatingPayload) => {
+                        console.log('Broadcast notification received!', message);
+                        toast.info(`Your Turn! You have a new item to rate.`);
+                        router.refresh();
+                    }
+                )
+                .subscribe((status, err) => {
+                    if (status === 'SUBSCRIBED') {
+                        console.log(`Realtime SUBSCRIBED to channel: ${channel?.topic}`);
+                    }
+                    if (err) {
+                        console.error(`Realtime channel error for ${channel?.topic}:`, err.message);
+                    }
+                });
         };
 
-        getUser();
-    }, [pathname]);
+        initAndSubscribe();
 
-    const handleNewPendingRating = (payload: PendingRating) => {
-        console.log('New pending rating received:', payload);
-
-        toast.info("Your Turn! You have a new item to rate.", {
-            description: "A new movie or show was logged in one of your shared spaces.",
-            action: {
-                label: "View",
-                onClick: () => {
-                    console.log("View action clicked");
-                }
+        return () => {
+            if (channel) {
+                supabase.removeChannel(channel).then(() => {
+                    console.log(`Realtime unsubscribed from user channel.`);
+                });
             }
-        });
-    };
-
-    useRealtimeSubscription<PendingRating>(
-        'PendingRating',
-        `user_id=eq.${user?.id}`,
-        handleNewPendingRating
-    );
+        };
+    }, [session, supabase, router]);
 
     return null;
 }

@@ -3,8 +3,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useTransition } from 'react';
 
 import {
     createSpaceSchema,
@@ -23,12 +23,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { createSpace } from '@/actions/space-actions';
 
-/**
- * A client component form for creating a new Shared Space.
- * Handles form state, validation, and calls the `createSpace` server action.
- */
 export function CreateSpaceForm() {
-    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
 
     const form = useForm<CreateSpaceInput>({
         resolver: zodResolver(createSpaceSchema),
@@ -37,36 +33,28 @@ export function CreateSpaceForm() {
         },
     });
 
-    async function onSubmit(values: CreateSpaceInput) {
-        const toastId = toast.loading('Creating your new space...');
+    function onSubmit(values: CreateSpaceInput) {
+        startTransition(async () => {
+            const result = await createSpace(values);
 
-        const result = await createSpace(values);
-
-        if (result.success) {
-            toast.success(`Space "${result.data.name}" has been created!`, {
-                id: toastId,
-            });
-        } else {
-            if (result.fieldErrors) {
-                for (const [field, errors] of Object.entries(result.fieldErrors)) {
-                    form.setError(field as keyof CreateSpaceInput, {
-                        type: 'server',
-                        message: errors.join(', '),
-                    });
+            if (result && !result.success) {
+                if (result.fieldErrors) {
+                    for (const [field, errors] of Object.entries(result.fieldErrors)) {
+                        form.setError(field as keyof CreateSpaceInput, {
+                            type: 'server',
+                            message: errors.join(', '),
+                        });
+                    }
+                } else {
+                    toast.error(result.error);
                 }
-                toast.error('Please correct the errors in the form.', { id: toastId });
-            } else {
-                toast.error(result.error, { id: toastId });
             }
-        }
+        });
     }
 
     return (
         <Form {...form}>
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <FormField
                     control={form.control}
                     name="name"
@@ -87,8 +75,8 @@ export function CreateSpaceForm() {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting ? (
+                <Button type="submit" disabled={isPending}>
+                    {isPending ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Creating...
