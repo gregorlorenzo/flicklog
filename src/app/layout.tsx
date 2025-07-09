@@ -3,6 +3,7 @@ import { Poppins, Source_Sans_3 as SourceSansPro } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from '@/components/ui/sonner';
+import { SupabaseProvider } from '@/components/providers/supabase-provider';
 import { RealtimeNotificationProvider } from '@/components/providers/realtime-provider';
 
 const poppins = Poppins({
@@ -38,9 +39,12 @@ export default function RootLayout({
           sourceSansPro.variable
         )}
       >
-        {children}
-        <Toaster richColors />
-        <RealtimeNotificationProvider />
+        <SupabaseProvider>
+          {children}
+          <Toaster richColors />
+          <RealtimeNotificationProvider />
+        </SupabaseProvider>
+
       </body>
     </html>
   );
