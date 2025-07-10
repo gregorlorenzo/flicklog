@@ -102,6 +102,34 @@ The resolution involved a full "nuke and pave" of both the local and remote data
   - Database-related deployment steps MUST be automated in `package.json` scripts.
   - When working with Prisma and external systems (like Supabase Triggers), always prefer database-level defaults (`@db.Uuid`, `@default(dbgenerated(...))`) over Prisma-Client-only directives (`@default(uuid())`, `@updatedAt`).
   - Any `500: unexpected_failure` from a Supabase API call should immediately lead to checking the project's **Database Logs**, not just the API logs.
+  
+## Incident: Real-Time Notification Failure (July 2025)
+
+### 1. Impact
+
+- **Description:** The core social feature—real-time notifications for pending ratings—was non-functional. A user would not receive a toast or UI update when another member logged an entry in a shared space, requiring a manual page refresh to see the change.
+- **Duration:** Approximately 2-3 development/debugging cycles.
+- **Services Affected:** Supabase Realtime, Database Triggers, RLS Policies, Next.js Client Components.
+
+### 2. Root Causes (A Cascade of Interrelated Failures)
+
+The failure was not due to a single bug, but a chain reaction of three distinct issues, each masking the next:
+
+1. **Incorrect Realtime Method:** The initial implementation used Supabase's `Postgres Changes` feature. While functional, official guidance and benchmarks strongly recommend using **Database Broadcast** for this type of user-to-user notification, as it is more performant and provides more control.
+2. **Missing RLS Policy:** After switching to Broadcast, notifications were still not received due to a "permission denied" error on the client's websocket. The trigger was correctly sending the broadcast, but the receiving user was missing a `SELECT` policy on the `realtime.messages` table for their private channel topic (`user-notifications:USER_ID`).
+3. **Client-Side Race Condition:** Even with the correct policies, notifications were unreliable and often only worked after a page refresh. The root cause was that the client-side `RealtimeNotificationProvider` was attempting to subscribe to its private channel *before* the Supabase client had fully authenticated with the user's JWT.
+
+### 3. Resolution & Key Learnings
+
+- **Definitive Solution:**
+    1. **Switched to Database Broadcast:** Replaced the `Postgres Changes` listener with a custom PostgreSQL trigger (`notify_pending_rating`) that fires on `INSERT` into the `PendingRating` table and calls `realtime.broadcast()` to a user-specific channel.
+    2. **Added Realtime RLS Policy:** Created a new RLS policy in `setup.sql` to grant authenticated users `SELECT` permission on `realtime.messages` only where `realtime.topic()` matches their personal notification channel.
+    3. **Stabilized the Client Provider:** Refactored `RealtimeNotificationProvider` to be fully event-driven. It now uses `onAuthStateChange`. Only after a `SIGNED_IN` event is confirmed does it call `supabase.realtime.setAuth(session.access_token)` and then subscribe to the channel, completely eliminating the race condition.
+
+- **Future Prevention:**
+  - For user-specific notifications, default to the **Database Broadcast** pattern over general `Postgres Changes`.
+  - When implementing features that rely on a user's session in a client component, always tie the logic to the `onAuthStateChange` event listener to ensure authentication is complete.
+  - Remember that Realtime Broadcast has its own RLS on the `realtime.messages` table, which must be configured separately from your public table policies.
 
 ## Future of Monitoring (Post-Launch)
 

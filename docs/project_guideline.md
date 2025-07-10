@@ -185,6 +185,35 @@ export async function createLogEntry(
 }
 ```
 
+### Handling Redirects in Forms
+
+When a form's `onSubmit` handler calls a Server Action that is expected to end with a `redirect()`, do not `await` the action directly in a standard `async function`. Doing so can cause the client-side promise to never resolve, leaving UI elements (like toasts or spinners) in a permanent loading state.
+
+The correct pattern is to use the `useTransition` hook from React.
+
+**Correct Pattern:**
+
+```typescript
+// In your form component
+const [isPending, startTransition] = useTransition();
+
+function onSubmit(values: FormValues) {
+  startTransition(async () => {
+    const result = await myServerAction(values);
+
+    // This code only runs if the action returns an error instead of redirecting
+    if (result && !result.success) {
+      toast.error(result.error);
+    }
+  });
+}
+
+// ... in your JSX
+<Button type="submit" disabled={isPending}>
+  {isPending ? "Submitting..." : "Submit"}
+</Button>
+```
+
 ---
 
 ## 5. State Management
