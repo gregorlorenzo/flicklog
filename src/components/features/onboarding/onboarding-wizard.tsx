@@ -71,13 +71,13 @@ export function OnboardingWizard({ }: OnboardingWizardProps) {
     return (
         <div className="flex min-h-screen w-full flex-col items-center justify-center p-4">
             <h1 className="mb-2 text-3xl font-bold md:text-4xl">Welcome to Flicklog!</h1>
-            <p className="mb-8 text-lg text-muted-foreground">Let's get your library started.</p>
+            <p className="mb-8 text-lg text-muted-foreground">Let&apos;s get your library started.</p>
 
             <div className="w-full max-w-xl rounded-lg border bg-card p-6 md:p-8 shadow-lg">
                 {step === 1 && (
                     <div>
                         <h2 className="text-xl font-semibold md:text-2xl">Step 1: A Film You Loved</h2>
-                        <p className="mt-2 text-muted-foreground">Search for a movie you'd rate 4.5 or 5 stars.</p>
+                        <p className="mt-2 text-muted-foreground">Search for a movie you&apos;d rate 4.5 or 5 stars.</p>
                         <OnboardingTmdbSearch onSelect={handleSelect} onClear={handleClear} selectedItem={selection.item} />
                         {selection.item && (
                             <div className="mt-4 flex flex-col items-center">
@@ -114,7 +114,7 @@ export function OnboardingWizard({ }: OnboardingWizardProps) {
                 {step === 3 && (
                     <div>
                         <h2 className="text-xl font-semibold md:text-2xl">Step 3: Not For You</h2>
-                        <p className="mt-2 text-muted-foreground">Finally, a movie you didn't enjoy.</p>
+                        <p className="mt-2 text-muted-foreground">Finally, a movie you didn&apos;t enjoy.</p>
                         <OnboardingTmdbSearch onSelect={handleSelect} onClear={handleClear} selectedItem={selection.item} />
                         {selection.item && (
                             <div className="mt-4 flex flex-col items-center">
