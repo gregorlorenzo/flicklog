@@ -95,7 +95,7 @@ CREATE INDEX "Space_owner_id_idx" ON "Space"("owner_id");
 CREATE UNIQUE INDEX "LogEntry_space_id_tmdb_id_tmdb_type_key" ON "LogEntry"("space_id", "tmdb_id", "tmdb_type");
 
 -- AddForeignKey
-ALTER TABLE "Space" ADD CONSTRAINT "Space_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "Profile"("user_id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Space" ADD CONSTRAINT "Space_owner_id_fkey" FOREIGN KEY ("owner_id") REFERENCES "Profile"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SpaceMember" ADD CONSTRAINT "SpaceMember_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "Profile"("user_id") ON DELETE CASCADE ON UPDATE CASCADE;
