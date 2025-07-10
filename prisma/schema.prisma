@@ -1,10 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum SpaceType {
@@ -23,12 +24,13 @@ enum CommentType {
 }
 
 model Profile {
-  user_id      String   @id @db.Uuid
-  username     String   @unique
-  display_name String?
-  avatar_url   String?
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
+  user_id                  String   @id @db.Uuid
+  username                 String   @unique
+  display_name             String?
+  avatar_url               String?
+  has_completed_onboarding Boolean  @default(false)
+  created_at               DateTime @default(now())
+  updated_at               DateTime @updatedAt
 
   owned_spaces    Space[]
   ratings         Rating[]
