@@ -44,6 +44,7 @@ model Space {
   name      String
   type      SpaceType @default(PERSONAL)
   owner_id  String    @db.Uuid
+  discord_webhook_url String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 

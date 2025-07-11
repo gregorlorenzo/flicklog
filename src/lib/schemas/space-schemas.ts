@@ -23,4 +23,14 @@ export const inviteMemberSchema = z.object({
         .min(3, { message: 'Username must be at least 3 characters.' }),
 });
 
+/**
+ * Schema for adding a Discord Webhook URL.
+ * Validates that the URL is provided.
+ */
 export type InviteMemberInput = z.infer<typeof inviteMemberSchema>;
+
+export const discordWebhookSchema = z.object({
+    webhookUrl: z.string().url({ message: 'Please enter a valid Discord webhook URL.' }).or(z.literal('')),
+});
+
+export type DiscordWebhookFormValues = z.infer<typeof discordWebhookSchema>;
