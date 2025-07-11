@@ -1,9 +1,12 @@
 'use client';
 
+import { useTransition } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 
 import {
     completeRatingSchema,
@@ -27,9 +30,7 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 
 interface CompleteRatingFormProps {
@@ -40,6 +41,8 @@ interface CompleteRatingFormProps {
  * A client form for completing a pending rating.
  */
 export function CompleteRatingForm({ logEntryId }: CompleteRatingFormProps) {
+    const [isPending, startTransition] = useTransition();
+
     const form = useForm<CompleteRatingFormValues>({
         resolver: zodResolver(completeRatingSchema),
         defaultValues: {
@@ -50,26 +53,24 @@ export function CompleteRatingForm({ logEntryId }: CompleteRatingFormProps) {
         },
     });
 
-    async function onSubmit(values: CompleteRatingFormValues) {
-        const toastId = toast.loading('Submitting your rating...');
+    function onSubmit(values: CompleteRatingFormValues) {
+        startTransition(async () => { 
+            const result = await submitPendingRating(logEntryId, values);
 
-        const result = await submitPendingRating(logEntryId, values);
-
-        if (!result.success) {
-            if (result.fieldErrors) {
-                for (const [field, errors] of Object.entries(result.fieldErrors)) {
-                    form.setError(field as keyof CompleteRatingFormValues, {
-                        type: 'server',
-                        message: errors.join(', '),
-                    });
+            if (result && !result.success) {
+                if (result.fieldErrors) {
+                    for (const [field, errors] of Object.entries(result.fieldErrors)) {
+                        form.setError(field as keyof CompleteRatingFormValues, {
+                            type: 'server',
+                            message: errors.join(', '),
+                        });
+                    }
+                    toast.error('Please correct the errors in the form.');
+                } else {
+                    toast.error(result.error);
                 }
-                toast.error('Please correct the errors in the form.', { id: toastId });
-            } else {
-                toast.error(result.error, { id: toastId });
             }
-        } else {
-            toast.success('Rating submitted successfully!', { id: toastId });
-        }
+        });
     }
 
     return (
@@ -176,8 +177,8 @@ export function CompleteRatingForm({ logEntryId }: CompleteRatingFormProps) {
                     )}
                 />
 
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && (
+                <Button type="submit" disabled={isPending}>
+                    {isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Submit Rating

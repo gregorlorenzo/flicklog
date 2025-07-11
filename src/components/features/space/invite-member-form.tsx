@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { useTransition } from 'react'; 
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -28,6 +29,8 @@ interface InviteMemberFormProps {
  * A client form for inviting a new member to a space by username.
  */
 export function InviteMemberForm({ spaceId }: InviteMemberFormProps) {
+    const [isPending, startTransition] = useTransition(); 
+
     const form = useForm<InviteMemberInput>({
         resolver: zodResolver(inviteMemberSchema),
         defaultValues: {
@@ -35,24 +38,26 @@ export function InviteMemberForm({ spaceId }: InviteMemberFormProps) {
         },
     });
 
-    async function onSubmit(values: InviteMemberInput) {
-        const result = await inviteMember(spaceId, values);
+    function onSubmit(values: InviteMemberInput) {
+        startTransition(async () => { 
+            const result = await inviteMember(spaceId, values);
 
-        if (result.success) {
-            toast.success(`Invitation sent successfully!`);
-            form.reset();
-        } else {
-            if (result.fieldErrors) {
-                for (const [field, errors] of Object.entries(result.fieldErrors)) {
-                    form.setError(field as keyof InviteMemberInput, {
-                        type: 'server',
-                        message: errors.join(', '),
-                    });
-                }
+            if (result.success) {
+                toast.success(`Invitation sent successfully!`);
+                form.reset();
             } else {
-                toast.error(result.error);
+                if (result.fieldErrors) {
+                    for (const [field, errors] of Object.entries(result.fieldErrors)) {
+                        form.setError(field as keyof InviteMemberInput, {
+                            type: 'server',
+                            message: errors.join(', '),
+                        });
+                    }
+                } else {
+                    toast.error(result.error);
+                }
             }
-        }
+        });
     }
 
     return (
@@ -70,8 +75,9 @@ export function InviteMemberForm({ spaceId }: InviteMemberFormProps) {
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                    {form.formState.isSubmitting && (
+                {/* Use isPending for the disabled and loading state */}
+                <Button type="submit" disabled={isPending}>
+                    {isPending && (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Invite
