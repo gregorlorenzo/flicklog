@@ -36,7 +36,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
 
             {/* Critic's Corner Section */}
             <div>
-                <h2 className="mb-4 text-2xl font-semibold">Critic's Corner</h2>
+                <h2 className="mb-4 text-2xl font-semibold">Critic&apos;s Corner</h2>
                 <div className="grid gap-6 md:grid-cols-2">
                     <Card>
                         <CardHeader>
@@ -89,7 +89,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
                 </div>
             </div>
 
-            {/* --- The Great Divide --- */}
+            {/* The Great Divide */}
             <div>
                 <h2 className="mb-4 text-2xl font-semibold">The Great Divide</h2>
                 {greatDivide.length > 0 ? (
@@ -118,7 +118,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
                 )}
             </div>
 
-            {/* --- Perfect Harmony --- */}
+            {/* Perfect Harmony */}
             <div>
                 <h2 className="mb-4 text-2xl font-semibold">Perfect Harmony</h2>
                 {perfectHarmony.length > 0 ? (
