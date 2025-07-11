@@ -5,6 +5,7 @@ import type { PropsWithChildren } from 'react';
 import Link from 'next/link';
 import { SpaceSwitcher } from '@/components/shared/space-switcher';
 import { buttonVariants } from '@/components/ui/button';
+import { LayoutGrid, Settings } from 'lucide-react'; 
 
 /**
  * Layout for a specific space.
@@ -47,16 +48,34 @@ export default async function SpaceLayout({
                 <div className="container flex h-16 items-center justify-between">
                     <SpaceSwitcher currentSpaceId={spaceId} />
 
-                    <Link
-                        href={`/spaces/${spaceId}/log/new`}
-                        className={buttonVariants({ variant: 'default' })}
-                    >
-                        + Log New Entry
-                    </Link>
+                    {/* Group navigation links together */}
+                    <nav className="flex items-center space-x-2">
+                        <Link
+                            href={`/spaces/${spaceId}/stats`}
+                            className={buttonVariants({ variant: 'ghost' })}
+                        >
+                            <LayoutGrid className="mr-2 h-4 w-4" />
+                            Stats
+                        </Link>
+                        <Link
+                            href={`/spaces/${spaceId}/settings`}
+                            className={buttonVariants({ variant: 'ghost' })}
+                        >
+                            <Settings className="mr-2 h-4 w-4" />
+                            Settings
+                        </Link>
+                        <Link
+                            href={`/spaces/${spaceId}/log/new`}
+                            className={buttonVariants({ variant: 'default' })}
+                        >
+                            + Log New Entry
+                        </Link>
+                    </nav>
 
                 </div>
             </header>
-            <main>{children}</main>
+            {/* Add container and padding to main content area */}
+            <main className="container py-8">{children}</main>
         </div>
     );
 }

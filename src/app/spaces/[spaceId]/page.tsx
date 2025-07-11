@@ -7,6 +7,9 @@ import {
     type TmdbTvShowDetails,
 } from '@/lib/tmdb/tmdb-client';
 import { LogEntryCard } from '@/components/features/log/LogEntryCard';
+import { getFlicklogRewind } from '@/lib/data/stats-data';
+import { FlicklogRewind } from '@/components/features/dashboard/flicklog-rewind';
+import { createClient } from '@/lib/supabase/server';
 
 type LogEntryWithDetails = Prisma.LogEntryGetPayload<{
     include: {
@@ -76,13 +79,19 @@ export default async function SpacePage({
     params: Promise<{ spaceId: string }>;
 }) {
     const { spaceId } = await params;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     const space = await prisma.space.findUnique({ where: { id: spaceId } });
+
     if (!space) {
         return notFound();
     }
 
-    const logEntries = await getLogEntriesForSpace(spaceId);
+    const [logEntries, rewindEntries] = await Promise.all([
+        getLogEntriesForSpace(spaceId),
+        user && space.type === 'PERSONAL' ? getFlicklogRewind(user.id) : Promise.resolve([])
+    ]);
 
     const enrichedLogEntries: EnrichedLogEntry[] = await Promise.all(
         logEntries.map(async (entry) => {
@@ -98,13 +107,15 @@ export default async function SpacePage({
     );
 
     return (
-        <div className="container py-8">
+        <div>
             <header className="mb-8">
                 <h1 className="font-heading text-4xl font-bold">{space.name}</h1>
                 <p className="text-lg text-muted-foreground">
                     A shared library of your collective viewing experiences.
                 </p>
             </header>
+
+            <FlicklogRewind entries={rewindEntries} />
 
             {enrichedLogEntries.length > 0 ? (
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
