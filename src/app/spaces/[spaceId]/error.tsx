@@ -20,7 +20,7 @@ export default function SpaceError({
             <div className="flex flex-col items-center justify-center space-y-4 text-center rounded-lg border-2 border-dashed border-destructive bg-destructive/10 p-12">
                 <h2 className="text-2xl font-bold text-destructive">Oops! This space hit a snag.</h2>
                 <p className="max-w-md text-muted-foreground">
-                    We couldn't load this space right now. Please try again or return to the main dashboard.
+                    We couldn&apos;t load this space right now. Please try again or return to the main dashboard.
                 </p>
                 <div className='flex gap-4'>
                     <Button
