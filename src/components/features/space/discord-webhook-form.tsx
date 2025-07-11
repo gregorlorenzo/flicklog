@@ -1,11 +1,9 @@
 'use client';
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTransition } from 'react';
 import { toast } from 'sonner';
 import Link from 'next/link';
-
 import {
     discordWebhookSchema,
     type DiscordWebhookFormValues,
@@ -44,7 +42,6 @@ export function DiscordWebhookForm({
     function onSubmit(values: DiscordWebhookFormValues) {
         startTransition(async () => {
             const result = await saveDiscordWebhook(spaceId, values.webhookUrl);
-
             if (result.success) {
                 toast.success('Discord webhook URL saved!');
                 form.reset({ webhookUrl: values.webhookUrl });
@@ -70,9 +67,8 @@ export function DiscordWebhookForm({
                                 />
                             </FormControl>
                             <FormDescription>
-                                Paste the URL from your Discord channel's integration settings.
+                                Paste the URL from your Discord channel&apos;s integration settings.
                             </FormDescription>
-
                             <FormDescription>
                                 <Link
                                     href="https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks"
@@ -83,7 +79,6 @@ export function DiscordWebhookForm({
                                     Learn how to create a webhook.
                                 </Link>
                             </FormDescription>
-
                             <FormMessage />
                         </FormItem>
                     )}
