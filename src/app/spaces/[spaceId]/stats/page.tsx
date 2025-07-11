@@ -7,13 +7,14 @@ import Image from 'next/image';
 import { buildPosterUrl } from '@/lib/tmdb/tmdb-utils';
 
 interface StatsPageProps {
-    params: {
+    params: Promise<{
         spaceId: string;
-    };
+    }>;
 }
 
 export default async function StatsPage({ params }: StatsPageProps) {
-    const data = await getStatsDataForSpace(params.spaceId);
+    const { spaceId } = await params;
+    const data = await getStatsDataForSpace(spaceId);
 
     if (!data || data.length === 0) {
         return (
