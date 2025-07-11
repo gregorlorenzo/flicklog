@@ -10,6 +10,8 @@ import {
     type CreateSpaceInput,
     inviteMemberSchema,
     type InviteMemberInput,
+    discordWebhookSchema,
+    type DiscordWebhookFormValues,
 } from '@/lib/schemas/space-schemas';
 import type { ActionResult } from '@/lib/types';
 import type { Space } from '@prisma/client';
@@ -259,4 +261,71 @@ export async function removeMember(
             error: 'An unexpected error occurred. Please try again.',
         };
     }
+}
+
+/**
+ * Saves or clears the Discord webhook URL for a given space.
+ * Verifies that the user performing the action is an ADMIN of the space.
+ *
+ * @param spaceId The ID of the space to update.
+ * @param webhookUrl The new webhook URL, or an empty string to clear it.
+ * @returns ActionResult indicating success or failure.
+ */
+export async function saveDiscordWebhook(
+    spaceId: string,
+    webhookUrl: string
+): Promise<ActionResult<true>> {
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return { success: false, error: 'Authentication required.' };
+    }
+
+    const validatedFields = discordWebhookSchema.safeParse({ webhookUrl });
+    if (!validatedFields.success) {
+        return {
+            success: false,
+            error: 'Invalid webhook URL provided.',
+        };
+    }
+
+    try {
+        const membership = await prisma.spaceMember.findUnique({
+            where: {
+                user_id_space_id: {
+                    user_id: user.id,
+                    space_id: spaceId,
+                },
+                role: 'ADMIN',
+            },
+        });
+
+        if (!membership) {
+            return {
+                success: false,
+                error: 'Permission denied. You must be an admin to change this setting.',
+            };
+        }
+
+        await prisma.space.update({
+            where: {
+                id: spaceId,
+            },
+            data: {
+                discord_webhook_url: validatedFields.data.webhookUrl || null,
+            },
+        });
+    } catch (error) {
+        console.error('Error saving Discord webhook:', error);
+        return {
+            success: false,
+            error: 'A database error occurred while saving the webhook.',
+        };
+    }
+
+    revalidatePath(`/spaces/${spaceId}/settings`);
+    return { success: true, data: true };
 }

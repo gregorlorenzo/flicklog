@@ -12,6 +12,7 @@ import {
     type CompleteRatingFormValues,
 } from '@/lib/schemas/log-schema';
 import type { ActionResult } from '@/lib/types';
+import { postToDiscord } from '@/lib/services/discord-service';
 
 /**
  * Creates a new log entry in a given space.
@@ -50,15 +51,9 @@ export async function createLogEntry(
         const spaceWithMembers = await prisma.space.findFirst({
             where: {
                 id: spaceId,
-                members: {
-                    some: {
-                        user_id: user.id,
-                    },
-                },
+                members: { some: { user_id: user.id } },
             },
-            include: {
-                members: true,
-            },
+            include: { members: true },
         });
 
         if (!spaceWithMembers) {
@@ -68,7 +63,7 @@ export async function createLogEntry(
             };
         }
 
-        await prisma.$transaction(async (tx) => {
+        const transactionResult = await prisma.$transaction(async (tx) => {
             const logEntry = await tx.logEntry.upsert({
                 where: {
                     space_id_tmdb_id_tmdb_type: {
@@ -91,29 +86,18 @@ export async function createLogEntry(
                     user_id: user.id,
                     value: rating,
                     watched_on: watchedOn,
+                    comments: {
+                        create: [
+                            ...(quickTake ? [{ user_id: user.id, type: 'QUICK_TAKE' as const, content: quickTake }] : []),
+                            ...(deeperThoughts ? [{ user_id: user.id, type: 'DEEPER_THOUGHTS' as const, content: deeperThoughts }] : []),
+                        ],
+                    },
+                },
+                include: {
+                    user: { include: { memberships: false, owned_spaces: false, pending_ratings: false, ratings: false, comments: false } },
+                    comments: true,
                 },
             });
-
-            if (quickTake) {
-                await tx.comment.create({
-                    data: {
-                        rating_id: ratingRecord.id,
-                        user_id: user.id,
-                        type: 'QUICK_TAKE',
-                        content: quickTake,
-                    },
-                });
-            }
-            if (deeperThoughts) {
-                await tx.comment.create({
-                    data: {
-                        rating_id: ratingRecord.id,
-                        user_id: user.id,
-                        type: 'DEEPER_THOUGHTS',
-                        content: deeperThoughts,
-                    },
-                });
-            }
 
             if (spaceWithMembers.type === 'SHARED') {
                 const otherMembers = spaceWithMembers.members.filter(
@@ -130,7 +114,17 @@ export async function createLogEntry(
                     });
                 }
             }
+
+            return { logEntry, ratingRecord };
         });
+
+        if (spaceWithMembers.discord_webhook_url && transactionResult) {
+            postToDiscord(spaceWithMembers.discord_webhook_url, {
+                logEntry: transactionResult.logEntry,
+                rating: transactionResult.ratingRecord as any,
+            });
+        }
+
     } catch (error) {
         console.error('Database Error:', error);
         if (error instanceof Prisma.PrismaClientKnownRequestError) {
@@ -178,8 +172,10 @@ export async function submitPendingRating(
     }
     const { rating, watchedOn, quickTake, deeperThoughts } = validatedFields.data;
 
+    let spaceId: string | undefined;
+
     try {
-        await prisma.$transaction(async (tx) => {
+        const transactionResult = await prisma.$transaction(async (tx) => {
             const pendingRating = await tx.pendingRating.findUnique({
                 where: {
                     log_entry_id_user_id: {
@@ -188,13 +184,19 @@ export async function submitPendingRating(
                     },
                 },
                 include: {
-                    log_entry: true,
-                }
+                    log_entry: {
+                        include: {
+                            space: true,
+                        }
+                    },
+                },
             });
 
             if (!pendingRating) {
-                throw new Error('No pending rating found for this user and entry. You may have already submitted your rating.');
+                throw new Error('No pending rating found for this user and entry.');
             }
+
+            spaceId = pendingRating.log_entry.space_id;
 
             const ratingRecord = await tx.rating.create({
                 data: {
@@ -202,29 +204,18 @@ export async function submitPendingRating(
                     user_id: user.id,
                     value: rating,
                     watched_on: watchedOn,
+                    comments: {
+                        create: [
+                            ...(quickTake ? [{ user_id: user.id, type: 'QUICK_TAKE' as const, content: quickTake }] : []),
+                            ...(deeperThoughts ? [{ user_id: user.id, type: 'DEEPER_THOUGHTS' as const, content: deeperThoughts }] : []),
+                        ],
+                    },
+                },
+                include: {
+                    user: true,
+                    comments: true,
                 },
             });
-
-            if (quickTake) {
-                await tx.comment.create({
-                    data: {
-                        rating_id: ratingRecord.id,
-                        user_id: user.id,
-                        type: 'QUICK_TAKE',
-                        content: quickTake,
-                    },
-                });
-            }
-            if (deeperThoughts) {
-                await tx.comment.create({
-                    data: {
-                        rating_id: ratingRecord.id,
-                        user_id: user.id,
-                        type: 'DEEPER_THOUGHTS',
-                        content: deeperThoughts,
-                    },
-                });
-            }
 
             await tx.pendingRating.delete({
                 where: {
@@ -235,15 +226,28 @@ export async function submitPendingRating(
                 },
             });
 
-            return pendingRating.log_entry.space_id;
-        }).then(spaceId => {
-            revalidatePath(`/spaces/${spaceId}`);
-            redirect(`/spaces/${spaceId}`);
+            return {
+                logEntry: pendingRating.log_entry,
+                ratingRecord,
+                space: pendingRating.log_entry.space
+            };
         });
+
+        if (transactionResult && transactionResult.space.discord_webhook_url) {
+            postToDiscord(transactionResult.space.discord_webhook_url, {
+                logEntry: transactionResult.logEntry,
+                rating: transactionResult.ratingRecord as any,
+            });
+        }
 
     } catch (error: any) {
         console.error('Failed to submit pending rating:', error);
         return { success: false, error: error.message || 'An unexpected database error occurred.' };
+    }
+
+    if (spaceId) {
+        revalidatePath(`/spaces/${spaceId}`);
+        redirect(`/spaces/${spaceId}`);
     }
 
     return { success: true, data: true };

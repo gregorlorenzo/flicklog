@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { InviteMemberForm } from '@/components/features/space/invite-member-form';
 import { RemoveMemberButton } from '@/components/features/space/remove-member-button';
+import { DiscordWebhookForm } from '@/components/features/space/discord-webhook-form';
 
 type SpaceWithMembersAndProfiles = Prisma.SpaceGetPayload<{
     include: {
@@ -113,10 +114,10 @@ export default async function SpaceSettingsPage({
                                     if (!profile) return null;
 
                                     const canBeRemoved =
-                                        isCurrentUserAdmin &&  
+                                        isCurrentUserAdmin &&
                                         profile.user_id !== currentUser.id &&
-                                        profile.user_id !== space.owner_id && 
-                                        role !== 'ADMIN'; 
+                                        profile.user_id !== space.owner_id &&
+                                        role !== 'ADMIN';
 
                                     return (
                                         <li
@@ -174,6 +175,23 @@ export default async function SpaceSettingsPage({
                             <InviteMemberForm spaceId={space.id} />
                         </CardContent>
                     </Card>
+
+                    {isCurrentUserAdmin && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Discord Integration</CardTitle>
+                                <CardDescription>
+                                    Automatically post new log entries to a Discord channel.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <DiscordWebhookForm
+                                    spaceId={space.id}
+                                    currentWebhookUrl={space.discord_webhook_url}
+                                />
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </div>
         </div>
