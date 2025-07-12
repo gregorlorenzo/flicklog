@@ -7,6 +7,8 @@ import { SpaceSwitcher } from '@/components/shared/space-switcher';
 import { buttonVariants } from '@/components/ui/button';
 import { LayoutGrid, Settings } from 'lucide-react';
 import { UserNav } from '@/components/shared/user-nav';
+import { Separator } from '@/components/ui/separator';
+import { ThemeToggleSwitch } from '@/components/shared/theme-toggle-switch';
 
 /**
  * Layout for a specific space.
@@ -81,6 +83,8 @@ export default async function SpaceLayout({
                         >
                             + Log New
                         </Link>
+                        <ThemeToggleSwitch />
+                        <Separator orientation="vertical" className="h-8" />
                         <UserNav
                             email={user.email}
                             avatarUrl={userProfile?.avatar_url}

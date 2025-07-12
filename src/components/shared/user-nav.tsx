@@ -72,7 +72,6 @@ export function UserNav({ email, avatarUrl, displayName }: UserNavProps) {
                             <span>My Account</span>
                         </Link>
                     </DropdownMenuItem>
-                    {/* Theme toggle will be added here in the next milestone */}
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} disabled={isPending}>

@@ -1,4 +1,3 @@
-/* src/app/globals.css */
 @import 'tailwindcss';
 @import "tw-animate-css";
 
@@ -20,36 +19,47 @@
 }
 
 :root {
-  --background: oklch(0.151 0.012 259.4);
-  --foreground: oklch(0.914 0.011 82.9);
-  --card: oklch(0.203 0.014 259.6);
-  --card-foreground: oklch(0.914 0.011 82.9);
-  --popover: oklch(0.203 0.014 259.6);
-  --popover-foreground: oklch(0.914 0.011 82.9);
-  --primary: oklch(0.704 0.094 78.4);
-  --primary-foreground: oklch(0.151 0.012 259.4);
-  --secondary: oklch(0.203 0.014 259.6);
-  --secondary-foreground: oklch(0.704 0.094 78.4);
-  --muted: oklch(0.203 0.014 259.6);
-  --muted-foreground: oklch(0.914 0.011 82.9 / 0.6);
-  --accent: oklch(0.203 0.014 259.6);
-  --accent-foreground: oklch(0.914 0.011 82.9);
+  --background: oklch(0.96 0.009 82);
+  /* #F5F2EF */
+  --foreground: oklch(0.151 0.012 259.4);
+  /* #1A1D23 */
+  --card: oklch(1 0 0);
+  /* #FFFFFF */
+  --card-foreground: oklch(0.151 0.012 259.4);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.151 0.012 259.4);
+  --primary: oklch(0.65 0.1 85);
+  /* A slightly darker gold for light bg */
+  --primary-foreground: oklch(0.96 0.009 82);
+  --secondary: oklch(0.94 0.01 82);
+  /* A subtle off-white for secondary buttons */
+  --secondary-foreground: oklch(0.151 0.012 259.4);
+  --muted: oklch(0.94 0.01 82);
+  --muted-foreground: oklch(0.151 0.012 259.4 / 0.6);
+  --accent: oklch(0.94 0.01 82);
+  --accent-foreground: oklch(0.151 0.012 259.4);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.914 0.011 82.9);
-  --border: oklch(0.704 0.094 78.4 / 0.2);
-  --input: oklch(0.704 0.094 78.4 / 0.2);
-  --ring: oklch(0.704 0.094 78.4 / 0.8);
+  --destructive-foreground: oklch(0.96 0.009 82);
+  --border: oklch(0.151 0.012 259.4 / 0.1);
+  /* Lighter border */
+  --input: oklch(0.151 0.012 259.4 / 0.1);
+  --ring: oklch(0.65 0.1 85 / 0.8);
   --radius: 0.5rem;
 }
 
+/* --- DARK THEME --- */
 .dark {
   --background: oklch(0.151 0.012 259.4);
+  /* #1A1D23 */
   --foreground: oklch(0.914 0.011 82.9);
+  /* #EAE6E1 */
   --card: oklch(0.203 0.014 259.6);
+  /* #252931 */
   --card-foreground: oklch(0.914 0.011 82.9);
   --popover: oklch(0.203 0.014 259.6);
   --popover-foreground: oklch(0.914 0.011 82.9);
   --primary: oklch(0.704 0.094 78.4);
+  /* #D4A269 */
   --primary-foreground: oklch(0.151 0.012 259.4);
   --secondary: oklch(0.203 0.014 259.6);
   --secondary-foreground: oklch(0.704 0.094 78.4);
@@ -94,6 +104,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "kern" on, "liga" on;
