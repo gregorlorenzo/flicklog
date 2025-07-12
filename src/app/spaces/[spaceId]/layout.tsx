@@ -5,7 +5,8 @@ import type { PropsWithChildren } from 'react';
 import Link from 'next/link';
 import { SpaceSwitcher } from '@/components/shared/space-switcher';
 import { buttonVariants } from '@/components/ui/button';
-import { LayoutGrid, Settings } from 'lucide-react'; 
+import { LayoutGrid, Settings } from 'lucide-react';
+import { UserNav } from '@/components/shared/user-nav';
 
 /**
  * Layout for a specific space.
@@ -25,9 +26,13 @@ export default async function SpaceLayout({
         return notFound();
     }
 
+    const userProfilePromise = prisma.profile.findUnique({
+        where: { user_id: user.id },
+    });
+
     const { spaceId } = await params;
 
-    const space = await prisma.space.findFirst({
+    const spacePromise = prisma.space.findFirst({
         where: {
             id: spaceId,
             members: {
@@ -38,6 +43,8 @@ export default async function SpaceLayout({
         },
     });
 
+    const [userProfile, space] = await Promise.all([userProfilePromise, spacePromise]);
+
     if (!space) {
         return notFound();
     }
@@ -45,36 +52,43 @@ export default async function SpaceLayout({
     return (
         <div>
             <header className="sticky top-0 z-10 border-b bg-background/95 backdrop-blur-sm">
-                <div className="container flex h-16 items-center justify-between">
-                    <SpaceSwitcher currentSpaceId={spaceId} />
+                <div className="container flex h-16 items-center">
+                    <div className="flex items-center space-x-4">
+                        <SpaceSwitcher currentSpaceId={spaceId} />
+                        {/* Group navigation links together */}
+                        <nav className="hidden md:flex items-center space-x-2">
+                            <Link
+                                href={`/spaces/${spaceId}/stats`}
+                                className={buttonVariants({ variant: 'ghost' })}
+                            >
+                                <LayoutGrid className="mr-2 h-4 w-4" />
+                                Stats
+                            </Link>
+                            <Link
+                                href={`/spaces/${spaceId}/settings`}
+                                className={buttonVariants({ variant: 'ghost' })}
+                            >
+                                <Settings className="mr-2 h-4 w-4" />
+                                Settings
+                            </Link>
+                        </nav>
+                    </div>
 
-                    {/* Group navigation links together */}
-                    <nav className="flex items-center space-x-2">
-                        <Link
-                            href={`/spaces/${spaceId}/stats`}
-                            className={buttonVariants({ variant: 'ghost' })}
-                        >
-                            <LayoutGrid className="mr-2 h-4 w-4" />
-                            Stats
-                        </Link>
-                        <Link
-                            href={`/spaces/${spaceId}/settings`}
-                            className={buttonVariants({ variant: 'ghost' })}
-                        >
-                            <Settings className="mr-2 h-4 w-4" />
-                            Settings
-                        </Link>
+                    <div className="ml-auto flex items-center space-x-4">
                         <Link
                             href={`/spaces/${spaceId}/log/new`}
                             className={buttonVariants({ variant: 'default' })}
                         >
-                            + Log New Entry
+                            + Log New
                         </Link>
-                    </nav>
-
+                        <UserNav
+                            email={user.email}
+                            avatarUrl={userProfile?.avatar_url}
+                            displayName={userProfile?.display_name}
+                        />
+                    </div>
                 </div>
             </header>
-            {/* Add container and padding to main content area */}
             <main className="container py-8">{children}</main>
         </div>
     );
