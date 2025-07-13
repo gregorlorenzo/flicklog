@@ -3,8 +3,15 @@ import { redirect } from 'next/navigation';
 import { EditProfileForm } from '@/components/features/account/edit-profile-form';
 import { prisma } from '@/lib/db';
 import type { Profile } from '@prisma/client';
+import { PageHeader } from '@/components/shared/page-header';
 
-export default async function AccountProfilePage() {
+export default async function AccountProfilePage({
+    searchParams,
+}: {
+    searchParams: Promise<{ from?: string }>;
+}) {
+    const resolvedSearchParams = await searchParams;
+
     const supabase = await createClient();
     const {
         data: { user },
@@ -15,21 +22,36 @@ export default async function AccountProfilePage() {
     }
 
     const profile: Profile | null = await prisma.profile.findUnique({
-        where: {
-            user_id: user.id,
-        },
+        where: { user_id: user.id },
     });
 
     if (!profile) {
         return <div>Error: Profile not found. Please contact support.</div>;
     }
 
+    const breadcrumbs = [];
+    if (resolvedSearchParams.from) {
+        const spaceId = resolvedSearchParams.from.split('/spaces/')[1];
+        if (spaceId) {
+            const fromSpace = await prisma.space.findUnique({
+                where: { id: spaceId },
+                select: { name: true },
+            });
+            if (fromSpace) {
+                breadcrumbs.push({ href: resolvedSearchParams.from, label: fromSpace.name });
+            }
+        }
+    }
+
+    breadcrumbs.push({ href: '/account/profile', label: 'My Account' });
+
     return (
         <div className="container mx-auto max-w-2xl py-8">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold font-heading">Account Settings</h1>
-                <p className="text-muted-foreground">Manage your public profile details.</p>
-            </header>
+            <PageHeader
+                title="Account Settings"
+                description="Manage your public profile details."
+                breadcrumbs={breadcrumbs}
+            />
             <main>
                 <EditProfileForm profile={profile} />
             </main>
