@@ -8,9 +8,9 @@ import { PageHeader } from '@/components/shared/page-header';
 export default async function AccountProfilePage({
     searchParams,
 }: {
-    searchParams: Promise<{ from?: string }> | { from?: string };
+    searchParams: Promise<{ from?: string }>;
 }) {
-    const resolvedSearchParams = await Promise.resolve(searchParams);
+    const resolvedSearchParams = await searchParams;
 
     const supabase = await createClient();
     const {
