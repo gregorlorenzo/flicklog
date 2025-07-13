@@ -6,6 +6,10 @@ import {
     type TmdbTvShowDetails,
 } from '@/lib/tmdb/tmdb-client';
 import { LogEntryCard } from '@/components/features/log/LogEntryCard';
+import { EmptyState } from '@/components/shared/empty-state';
+import { Film } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 type LogEntryWithDetails = Prisma.LogEntryGetPayload<{
     include: {
@@ -93,12 +97,15 @@ export async function LibraryGrid({ spaceId }: LibraryGridProps) {
 
     if (enrichedLogEntries.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted bg-muted/50 p-12 text-center">
-                <h3 className="text-xl font-semibold">Library is Empty</h3>
-                <p className="mt-2 text-sm text-muted-foreground">
-                    Log your first movie or TV show in this space to get started.
-                </p>
-            </div>
+            <EmptyState
+                icon={Film}
+                title="Library is Empty"
+                description="Log your first movie or TV show in this space to get started."
+            >
+                <Button asChild>
+                    <Link href={`/spaces/${spaceId}/log/new`}>+ Log New Entry</Link>
+                </Button>
+            </EmptyState>
         );
     }
 

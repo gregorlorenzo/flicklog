@@ -20,6 +20,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { saveDiscordWebhook } from '@/actions/space-actions';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface DiscordWebhookFormProps {
     spaceId: string;
@@ -83,9 +94,28 @@ export function DiscordWebhookForm({
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={isPending}>
-                    {isPending ? 'Saving...' : 'Save'}
-                </Button>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button type="button" disabled={isPending}>
+                            {isPending ? 'Saving...' : 'Save'}
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will update the Discord webhook URL for this space.
+                                An incorrect URL will stop notifications from being sent.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={form.handleSubmit(onSubmit)}>
+                                Continue
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </form>
         </Form>
     );
