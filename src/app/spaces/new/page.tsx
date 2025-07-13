@@ -10,21 +10,24 @@ import { PageHeader } from '@/components/shared/page-header';
 export default async function NewSpacePage({
     searchParams,
 }: {
-    searchParams: { from?: string };
+    searchParams: Promise<{ from?: string }>;
 }) {
+    const resolvedSearchParams = await searchParams;
+
     const breadcrumbs = [];
-    if (searchParams.from) {
-        const spaceId = searchParams.from.split('/spaces/')[1];
+    if (resolvedSearchParams.from) {
+        const spaceId = resolvedSearchParams.from.split('/spaces/')[1];
         if (spaceId) {
             const fromSpace = await prisma.space.findUnique({
                 where: { id: spaceId },
                 select: { name: true },
             });
             if (fromSpace) {
-                breadcrumbs.push({ href: searchParams.from, label: fromSpace.name });
+                breadcrumbs.push({ href: resolvedSearchParams.from, label: fromSpace.name });
             }
         }
     }
+
     breadcrumbs.push({ href: '/spaces/new', label: 'Create New Space' });
 
     return (
@@ -34,7 +37,6 @@ export default async function NewSpacePage({
                 description="A Shared Space is a collaborative library where you and your friends can log movies together. Give it a name to get started."
                 breadcrumbs={breadcrumbs}
             />
-
             <div className="mt-8 max-w-md">
                 <CreateSpaceForm />
             </div>
