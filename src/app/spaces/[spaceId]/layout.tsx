@@ -89,6 +89,7 @@ export default async function SpaceLayout({
                             email={user.email}
                             avatarUrl={userProfile?.avatar_url}
                             displayName={userProfile?.display_name}
+                            currentSpaceId={space.id}
                         />
                     </div>
                 </div>

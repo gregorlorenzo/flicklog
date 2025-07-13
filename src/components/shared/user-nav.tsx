@@ -22,9 +22,10 @@ interface UserNavProps {
     email?: string;
     avatarUrl?: string | null;
     displayName?: string | null;
+    currentSpaceId?: string;
 }
 
-export function UserNav({ email, avatarUrl, displayName }: UserNavProps) {
+export function UserNav({ email, avatarUrl, displayName,  currentSpaceId }: UserNavProps) {
     const [isPending, startTransition] = useTransition();
 
     const handleSignOut = () => {
@@ -42,6 +43,10 @@ export function UserNav({ email, avatarUrl, displayName }: UserNavProps) {
             .substring(0, 2)
             .toUpperCase()
         : email?.charAt(0).toUpperCase() || '?';
+
+    const accountHref = currentSpaceId
+        ? `/account/profile?from=/spaces/${currentSpaceId}`
+        : '/account/profile';
 
     return (
         <DropdownMenu>
@@ -67,7 +72,7 @@ export function UserNav({ email, avatarUrl, displayName }: UserNavProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem asChild>
-                        <Link href="/account/profile">
+                        <Link href={accountHref}>
                             <User className="mr-2 h-4 w-4" />
                             <span>My Account</span>
                         </Link>

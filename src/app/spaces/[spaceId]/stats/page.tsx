@@ -5,6 +5,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Star } from 'lucide-react';
 import Image from 'next/image';
 import { buildPosterUrl } from '@/lib/tmdb/tmdb-utils';
+import { PageHeader } from '@/components/shared/page-header';
+import { prisma } from '@/lib/db';
+import { notFound } from 'next/navigation';
 
 interface StatsPageProps {
     params: Promise<{
@@ -14,12 +17,23 @@ interface StatsPageProps {
 
 export default async function StatsPage({ params }: StatsPageProps) {
     const { spaceId } = await params;
+
+    const space = await prisma.space.findUnique({ where: { id: spaceId } });
+    if (!space) {
+        return notFound();
+    }
+
     const data = await getStatsDataForSpace(spaceId);
+
+    const breadcrumbs = [
+        { href: `/spaces/${space.id}`, label: space.name },
+        { href: `/spaces/${space.id}/stats`, label: 'Statistics' },
+    ];
 
     if (!data || data.length === 0) {
         return (
             <div>
-                <h1 className="text-3xl font-bold">Statistics</h1>
+                <PageHeader title="Statistics" breadcrumbs={breadcrumbs} />
                 <div className="mt-6 rounded-lg border bg-card p-8 text-center text-muted-foreground">
                     <p>Not enough data to generate stats yet.</p>
                     <p>Log some more entries to see your stats here!</p>
@@ -33,7 +47,7 @@ export default async function StatsPage({ params }: StatsPageProps) {
 
     return (
         <div className="space-y-8">
-            <h1 className="text-3xl font-bold">Statistics</h1>
+            <PageHeader title="Statistics" breadcrumbs={breadcrumbs} />
 
             {/* Critic's Corner Section */}
             <div>

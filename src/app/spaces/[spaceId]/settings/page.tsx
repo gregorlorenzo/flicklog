@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { InviteMemberForm } from '@/components/features/space/invite-member-form';
 import { RemoveMemberButton } from '@/components/features/space/remove-member-button';
 import { DiscordWebhookForm } from '@/components/features/space/discord-webhook-form';
+import { PageHeader } from '@/components/shared/page-header';
 
 type SpaceWithMembersAndProfiles = Prisma.SpaceGetPayload<{
     include: {
@@ -74,7 +75,6 @@ export default async function SpaceSettingsPage({
     const { data: { user: currentUser } } = await supabase.auth.getUser();
 
     const { spaceId } = await params;
-
     const space = await getSpaceWithMembers(spaceId);
 
     if (!space || !currentUser) {
@@ -86,18 +86,18 @@ export default async function SpaceSettingsPage({
     );
     const isCurrentUserAdmin = currentUserMembership?.role === 'ADMIN';
 
-    return (
-        <div className="container py-8">
-            <div className="space-y-2">
-                <h1 className="font-heading text-3xl font-bold md:text-4xl">
-                    Space Settings
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                    Manage your shared space &quot;{space.name}&quot;.
-                </p>
-            </div>
+    const breadcrumbs = [
+        { href: `/spaces/${space.id}`, label: space.name },
+        { href: `/spaces/${space.id}/settings`, label: 'Settings' },
+    ];
 
-            <Separator className="my-6" />
+    return (
+        <div className="space-y-6">
+            <PageHeader
+                title="Space Settings"
+                description={`Manage your shared space "${space.name}".`}
+                breadcrumbs={breadcrumbs}
+            />
 
             <div className="grid gap-8 md:grid-cols-3">
                 <div className="md:col-span-2">

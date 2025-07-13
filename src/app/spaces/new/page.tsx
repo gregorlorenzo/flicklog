@@ -1,23 +1,41 @@
 import { CreateSpaceForm } from '@/components/features/space/create-space-form';
+import { prisma } from '@/lib/db';
+import { PageHeader } from '@/components/shared/page-header';
 
 /**
  * The page for creating a new Shared Space.
  * This is a server component that renders the CreateSpaceForm.
+ * It now includes a dynamic breadcrumb to return to the previous space.
  */
-export default function NewSpacePage() {
+export default async function NewSpacePage({
+    searchParams,
+}: {
+    searchParams: { from?: string };
+}) {
+    const breadcrumbs = [];
+    if (searchParams.from) {
+        const spaceId = searchParams.from.split('/spaces/')[1];
+        if (spaceId) {
+            const fromSpace = await prisma.space.findUnique({
+                where: { id: spaceId },
+                select: { name: true },
+            });
+            if (fromSpace) {
+                breadcrumbs.push({ href: searchParams.from, label: fromSpace.name });
+            }
+        }
+    }
+    breadcrumbs.push({ href: '/spaces/new', label: 'Create New Space' });
+
     return (
         <div className="container py-8">
-            <div className="space-y-2">
-                <h1 className="font-heading text-3xl font-bold md:text-4xl">
-                    Create a New Shared Space
-                </h1>
-                <p className="text-muted-foreground text-lg">
-                    A Shared Space is a collaborative library where you and your friends
-                    can log movies together. Give it a name to get started.
-                </p>
-            </div>
+            <PageHeader
+                title="Create a New Shared Space"
+                description="A Shared Space is a collaborative library where you and your friends can log movies together. Give it a name to get started."
+                breadcrumbs={breadcrumbs}
+            />
 
-            <div className="mt-8">
+            <div className="mt-8 max-w-md">
                 <CreateSpaceForm />
             </div>
         </div>

@@ -6,6 +6,7 @@ import { getFlicklogRewind } from '@/lib/data/stats-data';
 import { FlicklogRewind } from '@/components/features/dashboard/flicklog-rewind';
 import { LibraryGrid } from '@/components/features/dashboard/library-grid';
 import { LibraryGridSkeleton } from '@/components/features/dashboard/library-grid-skeleton';
+import { PageHeader } from '@/components/shared/page-header';
 
 
 export default async function SpacePage({
@@ -26,14 +27,20 @@ export default async function SpacePage({
         ? await getFlicklogRewind(user.id)
         : [];
 
+    const breadcrumbs = [
+        { href: `/spaces/${space.id}`, label: space.name },
+    ];
+
     return (
         <div>
-            <header className="mb-8">
-                <h1 className="font-heading text-4xl font-bold">{space.name}</h1>
-                <p className="text-lg text-muted-foreground">
-                    A shared library of your collective viewing experiences.
-                </p>
-            </header>
+            <PageHeader
+                title={space.name}
+                description={space.type === 'PERSONAL'
+                    ? 'Your personal viewing history.'
+                    : 'A shared library of your collective viewing experiences.'
+                }
+                breadcrumbs={breadcrumbs}
+            />
 
             <FlicklogRewind entries={rewindEntries} />
 
